@@ -305,6 +305,10 @@ body.light .header h1 {
     transform: translateY(-1px);
 }
 
+.appliance-row:hover input[type="range"] {
+    background: var(--border);
+}
+
 .app-info {
     display: flex;
     align-items: center;
