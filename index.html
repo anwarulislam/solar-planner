@@ -399,7 +399,7 @@
                 <p class="pref-hint" x-text="t('batteryHint')"></p>
               </div>
 
-              <!-- System Type -->
+              <!-- Controller Type -->
               <div class="pref-item">
                 <label style="margin-bottom: 12px">
                   <span x-text="t('systemType')"></span>
@@ -412,22 +412,37 @@
                 <div class="option-group">
                   <button
                     class="opt-btn"
-                    :class="systemType === 'off-grid' ? 'active-green' : ''"
-                    @click="systemType = 'off-grid'; calculate()"
-                    x-text="t('offGrid')"
-                  ></button>
+                    :class="systemType === 'pwm' ? 'active-green' : ''"
+                    @click="systemType = 'pwm'; calculate()"
+                  >
+                    <i class="fas fa-microchip" style="margin-right: 4px"></i>
+                    <span x-text="t('pwm')"></span><br /><span
+                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
+                      >Charge Controller</span
+                    >
+                  </button>
                   <button
                     class="opt-btn"
-                    :class="systemType === 'hybrid' ? 'active-green' : ''"
-                    @click="systemType = 'hybrid'; calculate()"
-                    x-text="t('hybrid')"
-                  ></button>
+                    :class="systemType === 'mppt' ? 'active-green' : ''"
+                    @click="systemType = 'mppt'; calculate()"
+                  >
+                    <i class="fas fa-bolt" style="margin-right: 4px"></i>
+                    <span x-text="t('mppt')"></span><br /><span
+                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
+                      >Charge Controller</span
+                    >
+                  </button>
                   <button
                     class="opt-btn"
-                    :class="systemType === 'grid-tied' ? 'active-green' : ''"
-                    @click="systemType = 'grid-tied'; calculate()"
-                    x-text="t('gridTied')"
-                  ></button>
+                    :class="systemType === 'hybrid-inverter' ? 'active-green' : ''"
+                    @click="systemType = 'hybrid-inverter'; calculate()"
+                  >
+                    <i class="fas fa-layer-group" style="margin-right: 4px"></i>
+                    <span x-text="t('hybridInverter')"></span><br /><span
+                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
+                      >Inverter + CC</span
+                    >
+                  </button>
                 </div>
                 <p class="pref-hint" x-text="systemTypeHint()"></p>
               </div>
@@ -647,7 +662,7 @@
           <!-- ── WARNINGS PANEL ── -->
           <div
             class="warnings-panel"
-            x-show="res.totalPeak === 0 || hasSurgingLoads() || systemType === 'grid-tied' || systemType === 'hybrid'"
+            x-show="res.totalPeak === 0 || hasSurgingLoads() || systemType === 'pwm' || systemType === 'hybrid-inverter'"
             x-transition
           >
             <!-- No load warning -->
@@ -663,18 +678,18 @@
                 <span x-text="t('warnSurgeNote')"></span>
               </div>
             </div>
-            <!-- Grid-Tied info -->
+            <!-- PWM info -->
+            <div class="warn-item warn-info" x-show="systemType === 'pwm'">
+              <i class="fas fa-microchip"></i>
+              <span x-text="t('warnPWM')"></span>
+            </div>
+            <!-- Hybrid Inverter info -->
             <div
               class="warn-item warn-info"
-              x-show="systemType === 'grid-tied'"
+              x-show="systemType === 'hybrid-inverter'"
             >
-              <i class="fas fa-plug-circle-check"></i>
-              <span x-text="t('warnGridTiedBattery')"></span>
-            </div>
-            <!-- Hybrid info -->
-            <div class="warn-item warn-info" x-show="systemType === 'hybrid'">
-              <i class="fas fa-circle-half-stroke"></i>
-              <span x-text="t('warnHybridBattery')"></span>
+              <i class="fas fa-layer-group"></i>
+              <span x-text="t('warnHybridInverter')"></span>
             </div>
           </div>
 
@@ -706,9 +721,9 @@
                 <div
                   class="result-value"
                   style="color: var(--purple)"
-                  x-text="systemType === 'grid-tied' ? t('noBattery') : res.battery + ' kWh'"
+                  x-text="res.battery + ' kWh'"
                 ></div>
-                <div class="result-sub" x-show="systemType !== 'grid-tied'">
+                <div class="result-sub" x-show="true">
                   <strong x-text="res.battAh + ' Ah'"></strong>
                   @ <span x-text="voltage + 'V'"></span> &nbsp;·&nbsp;
                   <span x-text="res.battCount + ' ' + t('units')"></span>
@@ -788,7 +803,7 @@
                 x-text="formatCost(cost.solar)"
               ></span>
             </div>
-            <div class="cost-row" x-show="systemType !== 'grid-tied'">
+            <div class="cost-row">
               <span class="clbl">
                 <span x-text="t('batteryBankCost')"></span>
                 <span
@@ -863,7 +878,7 @@
               >
                 <i
                   class="fas"
-                  :class="shareFeedback ? 'fa-check' : 'fa-link'"
+                  :class="shareFeedback ? 'fa-check' : 'fa-share-nodes'"
                 ></i>
                 <span
                   x-text="shareFeedback ? t('shareCopied') : t('share')"
@@ -1029,6 +1044,7 @@
       </div>
     </div>
 
+    <script src="i18n.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

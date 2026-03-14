@@ -9,11 +9,15 @@ const COST_RATES = {
     lifepo4: 25000, // ৳ per kWh
   },
   inverter: {
-    "off-grid": 12000, // ৳ per kW
-    hybrid: 18000,
-    "grid-tied": 22000,
+    pwm: 10000, // ৳ per kW — standard off-grid inverter with PWM
+    mppt: 13000, // ৳ per kW — inverter with MPPT controller
+    hybrid: 20000, // ৳ per kW — hybrid inverter (grid + battery)
   },
-  chargeControllerPerAmp: 80, // ৳ per amp (MPPT)
+  chargeController: {
+    pwm: 45, // ৳ per amp — PWM controller (cheaper)
+    mppt: 80, // ৳ per amp — MPPT controller (more efficient)
+    hybrid: 0, // Built into hybrid inverter
+  },
 };
 
 // Battery depth of discharge by type
@@ -22,21 +26,28 @@ const DOD_MAP = {
   lifepo4: 0.85, // LiFePO4 can safely use 85% DoD
 };
 
-// Battery factor: how much battery storage each system type needs
+// Battery factor: how much battery storage each controller type needs
 const SYSTEM_BATTERY_FACTOR = {
-  "off-grid": 1.0, // Full autonomy — no grid fallback
-  hybrid: 0.5, // Grid covers 50% of backup needs
-  "grid-tied": 0.0, // No battery storage needed
+  pwm: 1.0, // Full autonomy, user-defined backup hours
+  mppt: 1.0, // Full autonomy, more efficient charging
+  hybrid: 1.0, // Full backup — hybrid manages grid + battery
 };
 
-// Solar sizing factor per system type
+// Solar sizing factor per controller type
 const SYSTEM_SOLAR_FACTOR = {
-  "off-grid": 1.0,
-  hybrid: 0.9, // Grid supplements, slightly smaller array
-  "grid-tied": 1.05, // Slight oversize for grid export
+  pwm: 1.0,
+  mppt: 0.9, // MPPT is ~10-15% more efficient — smaller array needed
+  hybrid: 1.0,
 };
 
-// Standard MPPT controller max amps per unit
+// MPPT efficiency bonus (MPPT extracts more from same panel area)
+const MPPT_EFFICIENCY_BONUS = {
+  pwm: 1.0,
+  mppt: 1.15, // MPPT controllers are ~15% more efficient
+  hybrid: 1.1, // Hybrid inverter with MPPT built-in
+};
+
+// Standard controller max amps per unit
 const MAX_CC_AMPS = 60;
 
 // Available panel wattages
@@ -167,244 +178,6 @@ const ALL_APPLIANCES = [
   },
 ];
 
-// ── TRANSLATIONS ─────────────────────────────────────────────────
-const TRANSLATIONS = {
-  en: {
-    badge: "Solar Power Planner",
-    title: "Solar Setup Calculator",
-    appliancesTitle: "Daily Appliances & Load",
-    appliancesDesc: "Set quantity and daily usage hours for each device",
-    otherAppliances: "Other Appliances",
-    showOther: "Show Other Appliances",
-    hideOther: "Hide Other Appliances",
-    qty: "Qty",
-    hoursPerDay: "Hours / Day",
-    wPerUnit: "W per unit",
-    totalWatts: "W total",
-    prefsTitle: "System Preferences",
-    prefsDesc: "Fine-tune battery, solar, and inverter parameters",
-    backupDuration: "Backup Duration",
-    backupHint: "Battery-only runtime with no solar production (night/cloudy)",
-    peakSunHours: "Peak Sun Hours",
-    peakSunHint: "Location-specific solar intensity (daily average)",
-    sysEfficiency: "System Efficiency",
-    sysEfficiencyHint: "Accounts for wiring, dust, heat losses",
-    panelWatts: "Panel Size",
-    panelWattsHint: "Rated wattage per individual panel",
-    panelType: "Panel Type",
-    panelHint: "Affects panel cost per watt",
-    panelStandard: "Standard",
-    panelMono: "(Monocrystalline)",
-    panelPremium: "Premium",
-    panelPoly: "(Polycrystalline)",
-    batteryType: "Battery Type",
-    batteryHint: "Affects battery cost per kWh",
-    leadAcid: "Lead Acid",
-    leadAcidSub: "(50% DoD)",
-    lifepo4: "LiFePO4",
-    lifepo4Sub: "(85% DoD)",
-    systemType: "System Type",
-    offGrid: "Off-Grid",
-    hybrid: "Hybrid",
-    gridTied: "Grid-Tied",
-    batteryBank: "Battery Bank",
-    batteryBankHint: "Capacity per battery unit",
-    systemTypeLabels: {
-      "off-grid": "Off-Grid",
-      hybrid: "Hybrid",
-      "grid-tied": "Grid-Tied",
-    },
-    systemTypeHints: {
-      "off-grid": "Fully independent — no grid connection",
-      hybrid: "Battery + grid backup capability",
-      "grid-tied": "Grid-connected, no battery storage needed",
-    },
-    quickInfo: "Quick Info",
-    quickInfoItems: [
-      "Ah = <code>(kWh × 1000) / Voltage</code> — helps you configure the right battery bank.",
-      "Inverter includes a 25% surge headroom above peak load.",
-      "Lead-Acid: max 50% DoD. LiFePO4: max 85% DoD.",
-      "System efficiency (default 75%) accounts for heat, dust & wiring losses.",
-    ],
-    systemSummary: "System Summary",
-    inverterSize: "Inverter Size",
-    storageNeeded: "Storage Needed",
-    noBattery: "Not Required",
-    solarArray: "Solar Array",
-    peakLoad: "Peak Load",
-    dailyEnergy: "Daily Energy",
-    costEstimate: "Cost Estimate",
-    solarPanels: "Solar Panels",
-    batteryBankCost: "Battery Bank",
-    inverterAcc: "Inverter / Acc.",
-    chargeController: "Charge Controller",
-    totalEstCost: "Total Est. Cost",
-    approxNote:
-      "Approximate estimate only. Actual prices vary by brand, region, and supplier. Use this as a planning reference.",
-    save: "Save",
-    saved: "Saved",
-    reset: "Reset",
-    share: "Share",
-    shareCopied: "Link copied!",
-    saveConfigTitle: "Save Configuration",
-    configNameLabel: "Configuration Name",
-    configNamePlaceholder: "e.g. Summer Cabin",
-    saveSettingBtn: "Save Setting",
-    cancel: "Cancel",
-    savedConfigsTitle: "Saved Configurations",
-    noConfigs: "No saved configurations yet.",
-    saveSummaryTitle: "System Requirements",
-    saveSummaryPrefs: "Preferences",
-    saveSummaryActive: "Active Appliances",
-    noneSelected: "None selected",
-    inv: "Inv",
-    pv: "PV",
-    units: "units",
-    panelsEach: "panels",
-    // Warnings
-    warnNoLoad: "No appliances selected. Add devices to get a calculation.",
-    warnSurge: "Motor loads detected",
-    warnSurgeNote:
-      "Pumps, ACs, and washing machines draw 3–6× rated watts at startup. Ensure your inverter supports sufficient surge current.",
-    warnGridTiedBattery:
-      "Grid-Tied mode: battery storage is not required. Shown as 0 kWh.",
-    warnHybridBattery:
-      "Hybrid mode: battery sized for 50% autonomy — grid covers the rest.",
-    // Load breakdown
-    loadBreakdownTitle: "Load Breakdown",
-    loadBreakdownDesc: "Daily energy consumption per appliance",
-    // Compare
-    compareTitle: "Compare System Types",
-    compareDesc: "Same load across all three configurations",
-    showCompare: "Show Comparison",
-    hideCompare: "Hide Comparison",
-    colOffGrid: "Off-Grid",
-    colHybrid: "Hybrid",
-    colGridTied: "Grid-Tied",
-    rowInverter: "Inverter",
-    rowBattery: "Battery",
-    rowSolar: "Solar",
-    rowCost: "Est. Cost",
-  },
-  bn: {
-    badge: "সোলার পাওয়ার প্ল্যানার",
-    title: "সোলার সেটআপ ক্যালকুলেটর",
-    appliancesTitle: "দৈনিক যন্ত্রপাতি ও লোড",
-    appliancesDesc:
-      "প্রতিটি ডিভাইসের পরিমাণ ও দৈনিক ব্যবহারের সময় নির্ধারণ করুন",
-    otherAppliances: "অন্যান্য যন্ত্রপাতি",
-    showOther: "অন্যান্য যন্ত্রপাতি দেখান",
-    hideOther: "অন্যান্য যন্ত্রপাতি লুকান",
-    qty: "সংখ্যা",
-    hoursPerDay: "ঘণ্টা / দিন",
-    wPerUnit: "ওয়াট / ইউনিট",
-    totalWatts: "W মোট",
-    prefsTitle: "সিস্টেম পছন্দ",
-    prefsDesc: "ব্যাটারি, সোলার ও ইনভার্টার প্যারামিটার সামঞ্জস্য করুন",
-    backupDuration: "ব্যাকআপ সময়কাল",
-    backupHint: "সোলার উৎপাদন ছাড়া শুধু ব্যাটারিতে চলার সময় (রাত/মেঘলা)",
-    peakSunHours: "পিক সূর্যালোক সময়",
-    peakSunHint: "অবস্থানভিত্তিক সোলার তীব্রতা (দৈনিক গড়)",
-    sysEfficiency: "সিস্টেম দক্ষতা",
-    sysEfficiencyHint: "তার, ধূলা, তাপ ক্ষতি বিবেচনায়",
-    panelWatts: "প্যানেলের আকার",
-    panelWattsHint: "প্রতিটি প্যানেলের রেটেড ওয়াটেজ",
-    panelType: "প্যানেলের ধরন",
-    panelHint: "প্রতি ওয়াট প্যানেলের খরচ প্রভাবিত করে",
-    panelStandard: "স্ট্যান্ডার্ড",
-    panelMono: "(মনোক্রিস্টালাইন)",
-    panelPremium: "প্রিমিয়াম",
-    panelPoly: "(পলিক্রিস্টালাইন)",
-    batteryType: "ব্যাটারির ধরন",
-    batteryHint: "প্রতি kWh ব্যাটারির খরচ প্রভাবিত করে",
-    leadAcid: "লিড অ্যাসিড",
-    leadAcidSub: "(৫০% DoD)",
-    lifepo4: "লিফেপো৪",
-    lifepo4Sub: "(৮৫% DoD)",
-    systemType: "সিস্টেমের ধরন",
-    offGrid: "অফ-গ্রিড",
-    hybrid: "হাইব্রিড",
-    gridTied: "গ্রিড-টাইড",
-    batteryBank: "ব্যাটারি ব্যাংক",
-    batteryBankHint: "প্রতি ব্যাটারি ইউনিটের ক্ষমতা",
-    systemTypeLabels: {
-      "off-grid": "অফ-গ্রিড",
-      hybrid: "হাইব্রিড",
-      "grid-tied": "গ্রিড-টাইড",
-    },
-    systemTypeHints: {
-      "off-grid": "সম্পূর্ণ স্বাধীন — কোনো গ্রিড সংযোগ নেই",
-      hybrid: "ব্যাটারি + গ্রিড ব্যাকআপ সক্ষমতা",
-      "grid-tied": "গ্রিড-সংযুক্ত, ব্যাটারি স্টোরেজের প্রয়োজন নেই",
-    },
-    quickInfo: "দ্রুত তথ্য",
-    quickInfoItems: [
-      "Ah = <code>(kWh × ১০০০) / ভোল্টেজ</code> — সঠিক ব্যাটারি ব্যাংক কনফিগার করতে সাহায্য করে।",
-      "ইনভার্টারে পিক লোডের উপরে ২৫% সার্জ হেডরুম অন্তর্ভুক্ত।",
-      "লিড-অ্যাসিড: সর্বোচ্চ ৫০% DoD। লিফেপো৪: সর্বোচ্চ ৮৫% DoD।",
-      "সিস্টেম দক্ষতা (ডিফল্ট ৭৫%) তাপ, ধূলা ও তার ক্ষতি হিসাব করে।",
-    ],
-    systemSummary: "সিস্টেম সারসংক্ষেপ",
-    inverterSize: "ইনভার্টারের আকার",
-    storageNeeded: "প্রয়োজনীয় স্টোরেজ",
-    noBattery: "প্রয়োজন নেই",
-    solarArray: "সোলার অ্যারে",
-    peakLoad: "পিক লোড",
-    dailyEnergy: "দৈনিক শক্তি",
-    costEstimate: "খরচের অনুমান",
-    solarPanels: "সোলার প্যানেল",
-    batteryBankCost: "ব্যাটারি ব্যাংক",
-    inverterAcc: "ইনভার্টার / আনুষঙ্গিক",
-    chargeController: "চার্জ কন্ট্রোলার",
-    totalEstCost: "মোট আনুমানিক খরচ",
-    approxNote:
-      "শুধুমাত্র আনুমানিক তথ্য। প্রকৃত মূল্য ব্র্যান্ড, অঞ্চল ও সরবরাহকারী অনুযায়ী পরিবর্তিত হয়। পরিকল্পনার রেফারেন্স হিসেবে ব্যবহার করুন।",
-    save: "সংরক্ষণ",
-    saved: "সংরক্ষিত",
-    reset: "রিসেট",
-    share: "শেয়ার",
-    shareCopied: "লিংক কপি হয়েছে!",
-    saveConfigTitle: "কনফিগারেশন সংরক্ষণ",
-    configNameLabel: "কনফিগারেশনের নাম",
-    configNamePlaceholder: "যেমন: গ্রীষ্মকালীন কেবিন",
-    saveSettingBtn: "সেটিং সংরক্ষণ",
-    cancel: "বাতিল",
-    savedConfigsTitle: "সংরক্ষিত কনফিগারেশন",
-    noConfigs: "এখনো কোনো কনফিগারেশন সংরক্ষণ করা হয়নি।",
-    saveSummaryTitle: "সিস্টেম প্রয়োজনীয়তা",
-    saveSummaryPrefs: "পছন্দ",
-    saveSummaryActive: "সক্রিয় যন্ত্রপাতি",
-    noneSelected: "কিছু নির্বাচন করা হয়নি",
-    inv: "ইনভা",
-    pv: "পিভি",
-    units: "ইউনিট",
-    panelsEach: "প্যানেল",
-    warnNoLoad:
-      "কোনো যন্ত্রপাতি নির্বাচন করা হয়নি। হিসাব পেতে ডিভাইস যোগ করুন।",
-    warnSurge: "মোটর লোড শনাক্ত",
-    warnSurgeNote:
-      "পাম্প, এসি ও ওয়াশিং মেশিন চালু হওয়ার সময় রেটেড ওয়াটের ৩–৬ গুণ টানতে পারে। ইনভার্টারের সার্জ ক্যাপাসিটি নিশ্চিত করুন।",
-    warnGridTiedBattery:
-      "গ্রিড-টাইড মোড: ব্যাটারি স্টোরেজের প্রয়োজন নেই। ০ kWh দেখানো হচ্ছে।",
-    warnHybridBattery:
-      "হাইব্রিড মোড: ৫০% অটোনমির জন্য ব্যাটারি সাইজ করা হয়েছে — বাকিটা গ্রিড দেবে।",
-    loadBreakdownTitle: "লোড ব্রেকডাউন",
-    loadBreakdownDesc: "প্রতিটি যন্ত্রপাতির দৈনিক শক্তি ব্যবহার",
-    compareTitle: "সিস্টেম তুলনা",
-    compareDesc: "একই লোডে তিনটি কনফিগারেশন",
-    showCompare: "তুলনা দেখান",
-    hideCompare: "তুলনা লুকান",
-    colOffGrid: "অফ-গ্রিড",
-    colHybrid: "হাইব্রিড",
-    colGridTied: "গ্রিড-টাইড",
-    rowInverter: "ইনভার্টার",
-    rowBattery: "ব্যাটারি",
-    rowSolar: "সোলার",
-    rowCost: "আনু. খরচ",
-  },
-};
-// ─────────────────────────────────────────────────────────────────
-
 function solarCalculator() {
   return {
     appliances: ALL_APPLIANCES,
@@ -423,9 +196,9 @@ function solarCalculator() {
     panelWatts: 500,
     sysEfficiency: 75,
 
-    systemType: "off-grid",
+    systemType: "mppt",
     panelType: "mono",
-    batteryType: "lead-acid",
+    batteryType: "lifepo4",
 
     rates: { solarPerW: 22, battPerKwh: 10000, inverterPerKw: 12000 },
 
@@ -498,9 +271,10 @@ function solarCalculator() {
       this.sun = cfg.sun || 4.5;
       this.voltage = cfg.voltage || 12;
       this.battAh = cfg.battAh || BATTERY_SIZES[this.voltage][4];
-      this.systemType = cfg.systemType || "off-grid";
+      const rawSysType = cfg.systemType || "mppt";
+      this.systemType = rawSysType;
       this.panelType = cfg.panelType || "mono";
-      this.batteryType = cfg.batteryType || "lead-acid";
+      this.batteryType = cfg.batteryType || "lifepo4";
       this.panelWatts = cfg.panelWatts || 500;
       this.sysEfficiency = cfg.sysEfficiency || 75;
       if (cfg.state) {
@@ -520,9 +294,9 @@ function solarCalculator() {
       this.sun = 4.5;
       this.voltage = 12;
       this.battAh = 100;
-      this.systemType = "off-grid";
+      this.systemType = "mppt";
       this.panelType = "mono";
-      this.batteryType = "lead-acid";
+      this.batteryType = "lifepo4";
       this.panelWatts = 500;
       this.sysEfficiency = 75;
       this.appliances.forEach((app) => {
@@ -575,7 +349,8 @@ function solarCalculator() {
       const solarPerW = COST_RATES.solar[this.panelType];
       const battPerKwh = COST_RATES.battery[this.batteryType];
       const inverterPerKw = COST_RATES.inverter[this.systemType];
-      return { solarPerW, battPerKwh, inverterPerKw };
+      const ccPerAmp = COST_RATES.chargeController[this.systemType];
+      return { solarPerW, battPerKwh, inverterPerKw, ccPerAmp };
     },
 
     setVoltage(v) {
@@ -631,7 +406,7 @@ function solarCalculator() {
         .sort((a, b) => b.kwh - a.kwh);
     },
 
-    // Calculate results for a specific system type (for compare mode)
+    // Calculate results for a specific controller type (for compare mode)
     _calcForMode(sysType) {
       let totalPeakWatts = 0,
         dailyWattHours = 0;
@@ -645,40 +420,42 @@ function solarCalculator() {
       const dod = DOD_MAP[this.batteryType];
       const battFactor = SYSTEM_BATTERY_FACTOR[sysType];
       const solarFactor = SYSTEM_SOLAR_FACTOR[sysType];
-      const effectiveSun = this.sun * (this.sysEfficiency / 100);
+      const mpptBonus = MPPT_EFFICIENCY_BONUS[sysType];
+      const effectiveSun = this.sun * (this.sysEfficiency / 100) * mpptBonus;
 
       const inverterKw = Math.ceil((totalPeakWatts * 1.25) / 1000);
       const storageNeeded = ((dailyKwh * autonomyDays) / dod) * battFactor;
-      const pvArrayKw = (dailyKwh / effectiveSun) * solarFactor;
+      const pvArrayKw =
+        effectiveSun > 0 ? (dailyKwh / effectiveSun) * solarFactor : 0;
 
-      const r = {
-        solarPerW: COST_RATES.solar[this.panelType],
-        battPerKwh: COST_RATES.battery[this.batteryType],
-        inverterPerKw: COST_RATES.inverter[sysType],
-      };
+      const solarPerW = COST_RATES.solar[this.panelType];
+      const battPerKwh = COST_RATES.battery[this.batteryType];
+      const inverterPerKw = COST_RATES.inverter[sysType];
+      const ccPerAmp = COST_RATES.chargeController[sysType];
+
       const ccAmps =
         effectiveSun > 0
           ? Math.ceil(((pvArrayKw * 1000) / this.voltage) * 1.25)
           : 0;
-      const costCC = ccAmps * COST_RATES.chargeControllerPerAmp;
+      const costCC = ccAmps * ccPerAmp;
       const totalCost =
-        pvArrayKw * 1000 * r.solarPerW +
-        storageNeeded * r.battPerKwh +
-        inverterKw * r.inverterPerKw +
+        pvArrayKw * 1000 * solarPerW +
+        storageNeeded * battPerKwh +
+        inverterKw * inverterPerKw +
         costCC;
 
       return {
         mode: sysType,
         label: this.translations[this.lang].systemTypeLabels[sysType],
         inverter: inverterKw + " kW",
-        battery: battFactor === 0 ? "—" : storageNeeded.toFixed(1) + " kWh",
+        battery: storageNeeded.toFixed(1) + " kWh",
         solar: pvArrayKw.toFixed(2) + " kW",
         cost: this.formatCost(totalCost),
       };
     },
 
     buildCompare() {
-      this.compareData = ["off-grid", "hybrid", "grid-tied"].map((m) =>
+      this.compareData = ["pwm", "mppt", "hybrid"].map((m) =>
         this._calcForMode(m),
       );
     },
@@ -697,13 +474,14 @@ function solarCalculator() {
       const dod = DOD_MAP[this.batteryType];
       const battFactor = SYSTEM_BATTERY_FACTOR[this.systemType];
       const solarFactor = SYSTEM_SOLAR_FACTOR[this.systemType];
-      const effectiveSun = this.sun * (this.sysEfficiency / 100);
+      const mpptBonus = MPPT_EFFICIENCY_BONUS[this.systemType];
+      const effectiveSun = this.sun * (this.sysEfficiency / 100) * mpptBonus;
 
       // Inverter: peak load + 25% surge headroom
       const inverterKw = (totalPeakWatts * 1.25) / 1000;
       const finalInverter = Math.ceil(inverterKw);
 
-      // Battery: autonomy hours × daily kWh ÷ DoD × system type factor
+      // Battery: autonomy hours × daily kWh ÷ DoD × controller type factor
       const storageNeeded = ((dailyKwh * autonomyDays) / dod) * battFactor;
       const totalAhNeeded =
         storageNeeded > 0 ? (storageNeeded * 1000) / this.voltage : 0;
@@ -740,7 +518,7 @@ function solarCalculator() {
       this.cost.solar = pvArrayKw * 1000 * r.solarPerW;
       this.cost.battery = storageNeeded * r.battPerKwh;
       this.cost.inverter = finalInverter * r.inverterPerKw;
-      this.cost.chargeController = ccAmps * COST_RATES.chargeControllerPerAmp;
+      this.cost.chargeController = ccAmps * r.ccPerAmp;
       this.cost.total =
         this.cost.solar +
         this.cost.battery +
@@ -775,21 +553,227 @@ function solarCalculator() {
       };
     },
 
-    // ── Share via URL hash ────────────────────────────────────────
+    // ── Share via canvas image ────────────────────────────────────
     shareConfig() {
+      // Still encode share hash in URL for loading shared configs
       try {
         const encoded = btoa(JSON.stringify(this._currentConfig()));
-        const url = location.origin + location.pathname + "#share=" + encoded;
-        navigator.clipboard.writeText(url).catch(() => {});
         history.replaceState(null, "", "#share=" + encoded);
-        this.shareFeedback = true;
-        setTimeout(() => {
-          this.shareFeedback = false;
-        }, 2500);
       } catch (e) {}
+
+      // Build canvas summary image
+      const isDark = this.darkMode;
+      const bgColor = isDark ? "#0f172a" : "#f8fafc";
+      const cardBg = isDark ? "#1e293b" : "#ffffff";
+      const textPrimary = isDark ? "#f1f5f9" : "#0f172a";
+      const textDim = isDark ? "#94a3b8" : "#64748b";
+      const accent = "#f59e0b";
+      const blue = "#60a5fa";
+      const purple = "#a78bfa";
+      const orange = "#fb923c";
+      const green = "#4ade80";
+
+      const W = 640,
+        H = 480;
+      const canvas = document.createElement("canvas");
+      canvas.width = W * 2;
+      canvas.height = H * 2;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(2, 2);
+
+      // Background
+      ctx.fillStyle = bgColor;
+      ctx.fillRect(0, 0, W, H);
+
+      // Header band
+      const grad = ctx.createLinearGradient(0, 0, W, 0);
+      grad.addColorStop(0, "#f59e0b");
+      grad.addColorStop(1, "#f97316");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, 56);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 18px Inter, sans-serif";
+      ctx.fillText("☀  Solar Setup Calculator", 20, 22);
+      ctx.font = "400 12px Inter, sans-serif";
+      ctx.globalAlpha = 0.85;
+      ctx.fillText("System Summary", 20, 42);
+      ctx.globalAlpha = 1;
+
+      // Controller badge
+      const ctrlLabel =
+        this.translations[this.lang].systemTypeLabels[this.systemType] ||
+        this.systemType;
+      ctx.font = "bold 11px Inter, sans-serif";
+      const bw = ctx.measureText(ctrlLabel).width + 16;
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
+      ctx.beginPath();
+      ctx.roundRect(W - bw - 12, 18, bw, 22, 6);
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.fillText(ctrlLabel, W - bw - 4, 33);
+
+      // Card helper
+      const drawCard = (x, y, w, h, color, icon, label, value, sub) => {
+        ctx.fillStyle = cardBg;
+        ctx.beginPath();
+        ctx.roundRect(x, y, w, h, 10);
+        ctx.fill();
+        // Accent bar
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.roundRect(x, y, 4, h, [10, 0, 0, 10]);
+        ctx.fill();
+        // Icon circle
+        ctx.fillStyle = color + "33";
+        ctx.beginPath();
+        ctx.arc(x + 22, y + 22, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.font = "bold 12px Inter, sans-serif";
+        ctx.fillText(icon, x + 16, y + 27);
+        // Label
+        ctx.fillStyle = textDim;
+        ctx.font = "400 11px Inter, sans-serif";
+        ctx.fillText(label, x + 42, y + 18);
+        // Value
+        ctx.fillStyle = color;
+        ctx.font = "bold 20px Inter, sans-serif";
+        ctx.fillText(value, x + 42, y + 38);
+        // Sub
+        if (sub) {
+          ctx.fillStyle = textDim;
+          ctx.font = "400 10px Inter, sans-serif";
+          ctx.fillText(sub, x + 42, y + 52);
+        }
+      };
+
+      const lang = this.translations[this.lang];
+      const cw = (W - 48) / 2;
+      const ch = 70;
+      const row1y = 72;
+      const row2y = row1y + ch + 8;
+
+      drawCard(
+        16,
+        row1y,
+        cw,
+        ch,
+        blue,
+        "⚡",
+        lang.inverterSize,
+        this.res.inverter + " kW",
+        lang.peakLoad + ": " + this.res.totalPeak + "W",
+      );
+      drawCard(
+        24 + cw,
+        row1y,
+        cw,
+        ch,
+        purple,
+        "🔋",
+        lang.storageNeeded,
+        this.res.battery + " kWh",
+        this.res.battAh +
+          " Ah @ " +
+          this.voltage +
+          "V · " +
+          this.res.battCount +
+          " " +
+          lang.units,
+      );
+      drawCard(
+        16,
+        row2y,
+        cw,
+        ch,
+        orange,
+        "☀",
+        lang.solarArray,
+        this.res.panels + " kW",
+        this.res.panelCount + " panels × " + this.panelWatts + "W",
+      );
+      drawCard(
+        24 + cw,
+        row2y,
+        cw,
+        ch,
+        green,
+        "📆",
+        lang.dailyEnergy,
+        this.res.dailyEnergy + " kWh",
+        lang.peakSunHours +
+          ": " +
+          this.sun +
+          "h  ·  " +
+          lang.sysEfficiency +
+          ": " +
+          this.sysEfficiency +
+          "%",
+      );
+
+      // Cost section
+      const cy = row2y + ch + 12;
+      ctx.fillStyle = cardBg;
+      ctx.beginPath();
+      ctx.roundRect(16, cy, W - 32, 72, 10);
+      ctx.fill();
+      ctx.fillStyle = accent;
+      ctx.beginPath();
+      ctx.roundRect(16, cy, 4, 72, [10, 0, 0, 10]);
+      ctx.fill();
+      ctx.fillStyle = textDim;
+      ctx.font = "400 11px Inter, sans-serif";
+      ctx.fillText(lang.costEstimate, 28, cy + 16);
+      ctx.fillStyle = accent;
+      ctx.font = "bold 26px Inter, sans-serif";
+      ctx.fillText(this.formatCost(this.cost.total), 28, cy + 44);
+      // Cost breakdown
+      const items = [
+        [lang.solarPanels, this.formatCost(this.cost.solar), orange],
+        [lang.batteryBankCost, this.formatCost(this.cost.battery), purple],
+        [lang.inverterAcc, this.formatCost(this.cost.inverter), blue],
+        [
+          lang.chargeController,
+          this.formatCost(this.cost.chargeController),
+          green,
+        ],
+      ];
+      let bx = 230;
+      items.forEach(([lbl, val, col]) => {
+        ctx.fillStyle = textDim;
+        ctx.font = "400 9px Inter, sans-serif";
+        ctx.fillText(lbl, bx, cy + 22);
+        ctx.fillStyle = col;
+        ctx.font = "bold 11px Inter, sans-serif";
+        ctx.fillText(val, bx, cy + 38);
+        bx += 100;
+      });
+
+      // Footer
+      ctx.fillStyle = textDim;
+      ctx.font = "400 10px Inter, sans-serif";
+      ctx.fillText("anwar.bd · Solar Setup Calculator", 16, H - 10);
+      ctx.fillText(new Date().toLocaleDateString(), W - 90, H - 10);
+
+      // Copy to clipboard as blob
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        try {
+          const item = new ClipboardItem({ "image/png": blob });
+          navigator.clipboard.write([item]).catch(() => {});
+        } catch (e) {}
+      }, "image/png");
+
+      this.shareFeedback = true;
+      setTimeout(() => {
+        this.shareFeedback = false;
+      }, 2500);
     },
 
     _loadFromHash() {
+      return false;
+      // for now disable this feature
       const hash = location.hash;
       if (!hash.startsWith("#share=")) return false;
       try {
