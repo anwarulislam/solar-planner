@@ -19,6 +19,7 @@ function solarCalculator() {
     systemType: DEFAULTS.systemType,
     panelType: DEFAULTS.panelType,
     batteryType: DEFAULTS.batteryType,
+    isSolarEnabled: DEFAULTS.isSolarEnabled,
 
     rates: { solarPerW: 22, battPerKwh: 10000, inverterPerKw: 12000 },
 
@@ -94,6 +95,7 @@ function solarCalculator() {
       this.systemType = cfg.systemType ?? DEFAULTS.systemType;
       this.panelType = cfg.panelType ?? DEFAULTS.panelType;
       this.batteryType = cfg.batteryType ?? DEFAULTS.batteryType;
+      this.isSolarEnabled = cfg.isSolarEnabled ?? DEFAULTS.isSolarEnabled;
       this.panelWatts = cfg.panelWatts ?? DEFAULTS.panelWatts;
       this.sysEfficiency = cfg.sysEfficiency ?? DEFAULTS.sysEfficiency;
       if (cfg.state) {
@@ -116,6 +118,7 @@ function solarCalculator() {
       this.systemType = DEFAULTS.systemType;
       this.panelType = DEFAULTS.panelType;
       this.batteryType = DEFAULTS.batteryType;
+      this.isSolarEnabled = DEFAULTS.isSolarEnabled;
       this.panelWatts = DEFAULTS.panelWatts;
       this.sysEfficiency = DEFAULTS.sysEfficiency;
       this.appliances.forEach((app) => {
@@ -250,7 +253,9 @@ function solarCalculator() {
       const inverterKw = Math.ceil((totalPeakWatts * 1.25) / 1000);
       const storageNeeded = ((dailyKwh * autonomyDays) / dod) * battFactor;
       const pvArrayKw =
-        effectiveSun > 0 ? (dailyKwh / effectiveSun) * solarFactor : 0;
+        this.isSolarEnabled && effectiveSun > 0
+          ? (dailyKwh / effectiveSun) * solarFactor
+          : 0;
 
       const solarPerW = COST_RATES.solar[this.panelType];
       const battPerKwh = COST_RATES.battery[this.batteryType];
@@ -267,7 +272,7 @@ function solarCalculator() {
       const actualPvWatts = panelCountMode * this.panelWatts; // W actually purchased
 
       const ccAmps =
-        effectiveSun > 0
+        this.isSolarEnabled && effectiveSun > 0
           ? Math.ceil(((pvArrayKw * 1000) / this.voltage) * 1.25)
           : 0;
       const costCC = ccAmps * ccPerAmp;
@@ -323,12 +328,18 @@ function solarCalculator() {
 
       // Solar: daily energy ÷ effective sun hours × system factor
       const pvArrayKw =
-        effectiveSun > 0 ? (dailyKwh / effectiveSun) * solarFactor : 0;
-      const panelCount = Math.ceil((pvArrayKw * 1000) / this.panelWatts);
+        this.isSolarEnabled && effectiveSun > 0
+          ? (dailyKwh / effectiveSun) * solarFactor
+          : 0;
+      const panelCount = this.isSolarEnabled
+        ? Math.ceil((pvArrayKw * 1000) / this.panelWatts)
+        : 0;
 
       // Charge Controller: PV array amps × 1.25 safety factor
       const rawCcAmps =
-        effectiveSun > 0 ? ((pvArrayKw * 1000) / this.voltage) * 1.25 : 0;
+        this.isSolarEnabled && effectiveSun > 0
+          ? ((pvArrayKw * 1000) / this.voltage) * 1.25
+          : 0;
       const ccAmps = Math.ceil(rawCcAmps);
       const ccCount =
         Math.ceil(ccAmps / MAX_CC_AMPS) || (pvArrayKw > 0 ? 1 : 0);
@@ -384,6 +395,7 @@ function solarCalculator() {
         systemType: this.systemType,
         panelType: this.panelType,
         batteryType: this.batteryType,
+        isSolarEnabled: this.isSolarEnabled,
         panelWatts: this.panelWatts,
         sysEfficiency: this.sysEfficiency,
       };

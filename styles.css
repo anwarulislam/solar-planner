@@ -726,6 +726,12 @@ input[type="range"].green-track::-webkit-slider-thumb {
     color: var(--amber);
 }
 
+.opt-btn.active-gray {
+    background: rgba(156, 163, 175, 0.12);
+    border-color: rgba(156, 163, 175, 0.5);
+    color: #9ca3af;
+}
+
 /* Ah chip-picker */
 .ah-picker {
     display: flex;

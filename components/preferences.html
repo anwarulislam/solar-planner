@@ -1,307 +1,338 @@
-          <!-- System Preferences -->
-          <div class="card">
-            <div class="section-head">
-              <div class="section-title">
-                <div class="section-icon icon-amber">
-                  <i class="fas fa-sliders-h"></i>
-                </div>
-                <div>
-                  <h2 x-text="t('prefsTitle')"></h2>
-                  <p x-text="t('prefsDesc')"></p>
-                </div>
-              </div>
-            </div>
+<!-- System Preferences -->
+<div class="card">
+  <div class="section-head">
+    <div class="section-title">
+      <div class="section-icon icon-amber">
+        <i class="fas fa-sliders-h"></i>
+      </div>
+      <div>
+        <h2 x-text="t('prefsTitle')"></h2>
+        <p x-text="t('prefsDesc')"></p>
+      </div>
+    </div>
+  </div>
 
-            <div class="prefs-grid">
-              <!-- General Section -->
-              <div
-                class="divider-label"
-                style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
-              >
-                <span x-text="t('sectionGeneral')"></span>
-              </div>
+  <div class="prefs-grid">
+    <!-- General Section -->
+    <div
+      class="divider-label"
+      style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
+    >
+      <span x-text="t('sectionGeneral')"></span>
+    </div>
 
-              <!-- Backup Duration -->
-              <div class="pref-item">
-                <label>
-                  <span x-text="t('backupDuration')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--accent)"
-                    x-text="autonomy + 'h'"
-                  ></span>
-                </label>
-                <input
-                  type="range"
-                  min="1"
-                  max="72"
-                  step="1"
-                  x-model.number="autonomy"
-                  @input="calculate()"
-                  class="slider-full"
-                />
-                <p class="pref-hint" x-text="t('backupHint')"></p>
-              </div>
+    <!-- Backup Duration -->
+    <div class="pref-item">
+      <label>
+        <span x-text="t('backupDuration')"></span>
+        <span
+          class="pref-val"
+          style="color: var(--accent)"
+          x-text="autonomy + 'h'"
+        ></span>
+      </label>
+      <input
+        type="range"
+        min="1"
+        max="72"
+        step="1"
+        x-model.number="autonomy"
+        @input="calculate()"
+        class="slider-full"
+      />
+      <p class="pref-hint" x-text="t('backupHint')"></p>
+    </div>
 
-              <!-- Peak Sun Hours -->
-              <div class="pref-item">
-                <label>
-                  <span x-text="t('peakSunHours')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--amber)"
-                    x-text="sun + 'h'"
-                  ></span>
-                </label>
-                <input
-                  type="range"
-                  min="2"
-                  max="7"
-                  step="0.1"
-                  x-model.number="sun"
-                  @input="calculate()"
-                  class="slider-full amber-track"
-                />
-                <p class="pref-hint" x-text="t('peakSunHint')"></p>
-              </div>
+    <!-- Peak Sun Hours -->
+    <div class="pref-item" x-show="isSolarEnabled">
+      <label>
+        <span x-text="t('peakSunHours')"></span>
+        <span
+          class="pref-val"
+          style="color: var(--amber)"
+          x-text="sun + 'h'"
+        ></span>
+      </label>
+      <input
+        type="range"
+        min="2"
+        max="7"
+        step="0.1"
+        x-model.number="sun"
+        @input="calculate()"
+        class="slider-full amber-track"
+      />
+      <p class="pref-hint" x-text="t('peakSunHint')"></p>
+    </div>
 
-              <!-- System Efficiency -->
-              <div class="pref-item" style="display: none">
-                <label>
-                  <span x-text="t('sysEfficiency')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--green)"
-                    x-text="sysEfficiency + '%'"
-                  ></span>
-                </label>
-                <input
-                  type="range"
-                  min="60"
-                  max="95"
-                  step="1"
-                  x-model.number="sysEfficiency"
-                  @input="calculate()"
-                  class="slider-full green-track"
-                />
-                <p class="pref-hint" x-text="t('sysEfficiencyHint')"></p>
-              </div>
+    <!-- System Efficiency -->
+    <div class="pref-item" style="display: none">
+      <label>
+        <span x-text="t('sysEfficiency')"></span>
+        <span
+          class="pref-val"
+          style="color: var(--green)"
+          x-text="sysEfficiency + '%'"
+        ></span>
+      </label>
+      <input
+        type="range"
+        min="60"
+        max="95"
+        step="1"
+        x-model.number="sysEfficiency"
+        @input="calculate()"
+        class="slider-full green-track"
+      />
+      <p class="pref-hint" x-text="t('sysEfficiencyHint')"></p>
+    </div>
 
-              <!-- Solar Panel Section -->
-              <div
-                class="divider-label"
-                style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
-              >
-                <span x-text="t('sectionSolar')"></span>
-              </div>
+    <!-- Solar Panel Section -->
+    <div
+      class="divider-label"
+      style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
+    >
+      <span x-text="t('sectionSolar')"></span>
+    </div>
 
-              <!-- Panel Type -->
-              <div class="pref-item">
-                <label style="margin-bottom: 12px">
-                  <span x-text="t('panelType')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--amber)"
-                    x-text="rates.solarPerW + ' ৳/W'"
-                  ></span>
-                </label>
-                <div class="option-group">
-                  <button
-                    class="opt-btn"
-                    :class="panelType === 'mono' ? 'active-amber' : ''"
-                    @click="panelType = 'mono'; calculate()"
-                  >
-                    <i class="fas fa-solar-panel" style="margin-right: 4px"></i>
-                    <span x-text="t('panelStandard')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7"
-                      x-text="t('panelMono')"
-                    ></span>
-                  </button>
-                  <button
-                    class="opt-btn"
-                    :class="panelType === 'poly' ? 'active-amber' : ''"
-                    @click="panelType = 'poly'; calculate()"
-                  >
-                    <i class="fas fa-solar-panel" style="margin-right: 4px"></i>
-                    <span x-text="t('panelPremium')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7"
-                      x-text="t('panelPoly')"
-                    ></span>
-                  </button>
-                </div>
-                <p class="pref-hint" x-text="t('panelHint')"></p>
-              </div>
+    <!-- Enable Solar -->
+    <div class="pref-item" style="grid-column: 1 / -1">
+      <label style="margin-bottom: 12px">
+        <span x-text="t('enableSolar')"></span>
+        <span
+          class="pref-val"
+          :style="isSolarEnabled ? 'color: var(--amber)' : 'color: var(--text-dim)'"
+          x-text="isSolarEnabled ? t('enabled') : t('disabled')"
+        ></span>
+      </label>
+      <div class="option-group">
+        <button
+          class="opt-btn"
+          :class="isSolarEnabled ? 'active-amber' : ''"
+          @click="isSolarEnabled = true; calculate()"
+        >
+          <i class="fas fa-sun" style="margin-right: 4px"></i>
+          <span x-text="t('enabled')"></span>
+        </button>
+        <button
+          class="opt-btn"
+          :class="!isSolarEnabled ? 'active-gray' : ''"
+          @click="isSolarEnabled = false; calculate()"
+        >
+          <i class="fas fa-times" style="margin-right: 4px"></i>
+          <span x-text="t('disabled')"></span>
+        </button>
+      </div>
+      <p class="pref-hint" x-text="t('solarToggleHint')"></p>
+    </div>
 
-              <!-- Panel Size -->
-              <div class="pref-item">
-                <label style="margin-bottom: 12px">
-                  <span x-text="t('panelWatts')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--orange)"
-                    x-text="panelWatts + 'W'"
-                  ></span>
-                </label>
-                <div class="option-group">
-                  <template x-for="pw in PANEL_SIZES" :key="pw">
-                    <button
-                      class="opt-btn"
-                      :class="panelWatts === pw ? 'active-orange' : ''"
-                      @click="panelWatts = pw; calculate()"
-                      x-text="pw + 'W'"
-                    ></button>
-                  </template>
-                </div>
-                <p class="pref-hint" x-text="t('panelWattsHint')"></p>
-              </div>
+    <!-- Panel Type -->
+    <div class="pref-item" x-show="isSolarEnabled">
+      <label style="margin-bottom: 12px">
+        <span x-text="t('panelType')"></span>
+        <span
+          class="pref-val"
+          style="color: var(--amber)"
+          x-text="rates.solarPerW + ' ৳/W'"
+        ></span>
+      </label>
+      <div class="option-group">
+        <button
+          class="opt-btn"
+          :class="panelType === 'mono' ? 'active-amber' : ''"
+          @click="panelType = 'mono'; calculate()"
+        >
+          <i class="fas fa-solar-panel" style="margin-right: 4px"></i>
+          <span x-text="t('panelStandard')"></span><br /><span
+            style="font-weight: 400; opacity: 0.7"
+            x-text="t('panelMono')"
+          ></span>
+        </button>
+        <button
+          class="opt-btn"
+          :class="panelType === 'poly' ? 'active-amber' : ''"
+          @click="panelType = 'poly'; calculate()"
+        >
+          <i class="fas fa-solar-panel" style="margin-right: 4px"></i>
+          <span x-text="t('panelPremium')"></span><br /><span
+            style="font-weight: 400; opacity: 0.7"
+            x-text="t('panelPoly')"
+          ></span>
+        </button>
+      </div>
+      <p class="pref-hint" x-text="t('panelHint')"></p>
+    </div>
 
-              <!-- Battery Section -->
-              <div
-                class="divider-label"
-                style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
-              >
-                <span x-text="t('sectionBattery')"></span>
-              </div>
+    <!-- Panel Size -->
+    <div class="pref-item" x-show="isSolarEnabled">
+      <label style="margin-bottom: 12px">
+        <span x-text="t('panelWatts')"></span>
+        <span
+          class="pref-val"
+          style="color: var(--orange)"
+          x-text="panelWatts + 'W'"
+        ></span>
+      </label>
+      <div class="option-group">
+        <template x-for="pw in PANEL_SIZES" :key="pw">
+          <button
+            class="opt-btn"
+            :class="panelWatts === pw ? 'active-orange' : ''"
+            @click="panelWatts = pw; calculate()"
+            x-text="pw + 'W'"
+          ></button>
+        </template>
+      </div>
+      <p class="pref-hint" x-text="t('panelWattsHint')"></p>
+    </div>
 
-              <!-- Battery Type -->
-              <div class="pref-item">
-                <label style="margin-bottom: 12px">
-                  <span x-text="t('batteryType')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--purple)"
-                    x-text="rates.battPerKwh.toLocaleString('en-IN') + ' ৳/kWh'"
-                  ></span>
-                </label>
-                <div class="option-group">
-                  <button
-                    class="opt-btn"
-                    :class="batteryType === 'lead-acid' ? 'active-orange' : ''"
-                    @click="batteryType = 'lead-acid'; calculate()"
-                  >
-                    <i class="fas fa-car-battery" style="margin-right: 4px"></i>
-                    <span x-text="t('leadAcid')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7"
-                      x-text="t('leadAcidSub')"
-                    ></span>
-                  </button>
-                  <button
-                    class="opt-btn"
-                    :class="batteryType === 'lifepo4' ? 'active-orange' : ''"
-                    @click="batteryType = 'lifepo4'; calculate()"
-                  >
-                    <i class="fas fa-bolt" style="margin-right: 4px"></i>
-                    <span x-text="t('lifepo4')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7"
-                      x-text="t('lifepo4Sub')"
-                    ></span>
-                  </button>
-                </div>
-                <p class="pref-hint" x-text="t('batteryHint')"></p>
-              </div>
+    <!-- Battery Section -->
+    <div
+      class="divider-label"
+      style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
+    >
+      <span x-text="t('sectionBattery')"></span>
+    </div>
 
-              <!-- Battery Voltage + Ah -->
-              <div class="pref-item">
-                <label style="margin-bottom: 12px">
-                  <span x-text="t('batteryBank')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--purple)"
-                    x-text="voltage + 'V · ' + battAh + ' Ah · ' + battCapKwh().toFixed(2) + ' kWh'"
-                  ></span>
-                </label>
-                <!-- Voltage buttons -->
-                <div class="voltage-group">
-                  <button
-                    class="volt-btn"
-                    :class="voltage === 12 ? 'active' : ''"
-                    @click="setVoltage(12)"
-                  >
-                    12V
-                  </button>
-                  <button
-                    class="volt-btn"
-                    :class="voltage === 24 ? 'active' : ''"
-                    @click="setVoltage(24)"
-                  >
-                    24V
-                  </button>
-                  <button
-                    class="volt-btn"
-                    :class="voltage === 48 ? 'active' : ''"
-                    @click="setVoltage(48)"
-                  >
-                    48V
-                  </button>
-                </div>
-                <!-- Ah chips for selected voltage -->
-                <div class="ah-picker">
-                  <template x-for="ah in availableBattAh()" :key="ah">
-                    <button
-                      class="ah-chip"
-                      :class="battAh === ah ? 'active' : ''"
-                      @click="battAh = ah; calculate()"
-                      x-text="ah + ' Ah'"
-                    ></button>
-                  </template>
-                </div>
-                <p class="pref-hint" x-text="t('batteryBankHint')"></p>
-              </div>
+    <!-- Battery Type -->
+    <div class="pref-item">
+      <label style="margin-bottom: 12px">
+        <span x-text="t('batteryType')"></span>
+        <span
+          class="pref-val"
+          style="color: var(--purple)"
+          x-text="rates.battPerKwh.toLocaleString('en-IN') + ' ৳/kWh'"
+        ></span>
+      </label>
+      <div class="option-group">
+        <button
+          class="opt-btn"
+          :class="batteryType === 'lead-acid' ? 'active-orange' : ''"
+          @click="batteryType = 'lead-acid'; calculate()"
+        >
+          <i class="fas fa-car-battery" style="margin-right: 4px"></i>
+          <span x-text="t('leadAcid')"></span><br /><span
+            style="font-weight: 400; opacity: 0.7"
+            x-text="t('leadAcidSub')"
+          ></span>
+        </button>
+        <button
+          class="opt-btn"
+          :class="batteryType === 'lifepo4' ? 'active-orange' : ''"
+          @click="batteryType = 'lifepo4'; calculate()"
+        >
+          <i class="fas fa-bolt" style="margin-right: 4px"></i>
+          <span x-text="t('lifepo4')"></span><br /><span
+            style="font-weight: 400; opacity: 0.7"
+            x-text="t('lifepo4Sub')"
+          ></span>
+        </button>
+      </div>
+      <p class="pref-hint" x-text="t('batteryHint')"></p>
+    </div>
 
-              <!-- Inverter & Controller Section -->
-              <div
-                class="divider-label"
-                style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
-              >
-                <span x-text="t('sectionInverter')"></span>
-              </div>
+    <!-- Battery Voltage + Ah -->
+    <div class="pref-item">
+      <label style="margin-bottom: 12px">
+        <span x-text="t('batteryBank')"></span>
+        <span
+          class="pref-val"
+          style="color: var(--purple)"
+          x-text="voltage + 'V · ' + battAh + ' Ah · ' + battCapKwh().toFixed(2) + ' kWh'"
+        ></span>
+      </label>
+      <!-- Voltage buttons -->
+      <div class="voltage-group">
+        <button
+          class="volt-btn"
+          :class="voltage === 12 ? 'active' : ''"
+          @click="setVoltage(12)"
+        >
+          12V
+        </button>
+        <button
+          class="volt-btn"
+          :class="voltage === 24 ? 'active' : ''"
+          @click="setVoltage(24)"
+        >
+          24V
+        </button>
+        <button
+          class="volt-btn"
+          :class="voltage === 48 ? 'active' : ''"
+          @click="setVoltage(48)"
+        >
+          48V
+        </button>
+      </div>
+      <!-- Ah chips for selected voltage -->
+      <div class="ah-picker">
+        <template x-for="ah in availableBattAh()" :key="ah">
+          <button
+            class="ah-chip"
+            :class="battAh === ah ? 'active' : ''"
+            @click="battAh = ah; calculate()"
+            x-text="ah + ' Ah'"
+          ></button>
+        </template>
+      </div>
+      <p class="pref-hint" x-text="t('batteryBankHint')"></p>
+    </div>
 
-              <!-- Controller Type -->
-              <div class="pref-item" style="grid-column: 1 / -1">
-                <label style="margin-bottom: 12px">
-                  <span x-text="t('systemType')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--green)"
-                    x-text="systemTypeLabel()"
-                  ></span>
-                </label>
-                <div class="option-group">
-                  <button
-                    class="opt-btn"
-                    :class="systemType === 'pwm' ? 'active-green' : ''"
-                    @click="systemType = 'pwm'; calculate()"
-                  >
-                    <i class="fas fa-microchip" style="margin-right: 4px"></i>
-                    <span x-text="t('pwm')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
-                      >Charge Controller</span
-                    >
-                  </button>
-                  <button
-                    class="opt-btn"
-                    :class="systemType === 'mppt' ? 'active-green' : ''"
-                    @click="systemType = 'mppt'; calculate()"
-                  >
-                    <i class="fas fa-bolt" style="margin-right: 4px"></i>
-                    <span x-text="t('mppt')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
-                      >Charge Controller</span
-                    >
-                  </button>
-                  <button
-                    class="opt-btn"
-                    :class="systemType === 'hybrid' ? 'active-green' : ''"
-                    @click="systemType = 'hybrid'; calculate()"
-                  >
-                    <i class="fas fa-layer-group" style="margin-right: 4px"></i>
-                    <span x-text="t('hybridInverter')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
-                      >Inverter + CC</span
-                    >
-                  </button>
-                </div>
-                <p class="pref-hint" x-text="systemTypeHint()"></p>
-              </div>
-            </div>
-          </div>
+    <!-- Inverter & Controller Section -->
+    <div
+      class="divider-label"
+      style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
+    >
+      <span x-text="t('sectionInverter')"></span>
+    </div>
+
+    <!-- Controller Type -->
+    <div class="pref-item" style="grid-column: 1 / -1">
+      <label style="margin-bottom: 12px">
+        <span x-text="t('systemType')"></span>
+        <span
+          class="pref-val"
+          style="color: var(--green)"
+          x-text="systemTypeLabel()"
+        ></span>
+      </label>
+      <div class="option-group">
+        <button
+          class="opt-btn"
+          :class="systemType === 'pwm' ? 'active-green' : ''"
+          @click="systemType = 'pwm'; calculate()"
+        >
+          <i class="fas fa-microchip" style="margin-right: 4px"></i>
+          <span x-text="t('pwm')"></span><br /><span
+            style="font-weight: 400; opacity: 0.7; font-size: 10px"
+            >Charge Controller</span
+          >
+        </button>
+        <button
+          class="opt-btn"
+          :class="systemType === 'mppt' ? 'active-green' : ''"
+          @click="systemType = 'mppt'; calculate()"
+        >
+          <i class="fas fa-bolt" style="margin-right: 4px"></i>
+          <span x-text="t('mppt')"></span><br /><span
+            style="font-weight: 400; opacity: 0.7; font-size: 10px"
+            >Charge Controller</span
+          >
+        </button>
+        <button
+          class="opt-btn"
+          :class="systemType === 'hybrid' ? 'active-green' : ''"
+          @click="systemType = 'hybrid'; calculate()"
+        >
+          <i class="fas fa-layer-group" style="margin-right: 4px"></i>
+          <span x-text="t('hybridInverter')"></span><br /><span
+            style="font-weight: 400; opacity: 0.7; font-size: 10px"
+            >Inverter + CC</span
+          >
+        </button>
+      </div>
+      <p class="pref-hint" x-text="systemTypeHint()"></p>
+    </div>
+  </div>
+</div>

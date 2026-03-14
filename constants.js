@@ -74,6 +74,7 @@ const DEFAULTS = {
   batteryType: "lifepo4",
   panelWatts: 500, // rated W per panel
   sysEfficiency: 75, // %
+  isSolarEnabled: true, // Allow user to turn off solar entirely
 };
 // ─────────────────────────────────────────────────────────────────
 
