@@ -148,6 +148,13 @@ function solarCalculator() {
           break;
         }
       }
+
+      // Ensure the currently selected Ah is always visible if valid for this voltage
+      if (sizes.includes(this.battAh) && !result.includes(this.battAh)) {
+        result.push(this.battAh);
+        result.sort((a, b) => a - b);
+      }
+
       return result.length ? result : sizes;
     },
 
