@@ -140,15 +140,10 @@ function solarCalculator() {
         if (capKwh <= needed) {
           result.push(ah);
         } else if (!ceilingAdded) {
-          result.push(ah);
+          result.push(ah); // first Ah that covers the need
           ceilingAdded = true;
           break;
         }
-      }
-      if (!result.includes(this.battAh) && sizes.includes(this.battAh)) {
-        const insertAt = result.findIndex((a) => a > this.battAh);
-        if (insertAt === -1) result.push(this.battAh);
-        else result.splice(insertAt, 0, this.battAh);
       }
       return result.length ? result : sizes;
     },
@@ -175,10 +170,20 @@ function solarCalculator() {
     setVoltage(v) {
       this.voltage = v;
       const presets = BATTERY_SIZES[v];
+      // Ensure battAh is at least a valid preset for this voltage
       if (!presets.includes(this.battAh)) {
         this.battAh = presets[Math.floor(presets.length / 2)];
       }
+      // Calculate first so res.battery reflects the new voltage
       this.calculate();
+      // Then snap battAh to the best available option for the new voltage.
+      // Prefer keeping the current value; otherwise pick the ceiling
+      // (the smallest single unit that covers the required storage).
+      const available = this.availableBattAh();
+      if (available.length && !available.includes(this.battAh)) {
+        this.battAh = available[available.length - 1];
+        this.calculate();
+      }
     },
 
     updateQty(id, delta) {
@@ -252,14 +257,23 @@ function solarCalculator() {
       const inverterPerKw = COST_RATES.inverter[sysType];
       const ccPerAmp = COST_RATES.chargeController[sysType];
 
+      // Discrete units: users buy whole battery units and whole panels
+      const battCapKwh = (this.battAh * this.voltage) / 1000;
+      const battCountMode =
+        storageNeeded > 0 ? Math.ceil(storageNeeded / battCapKwh) : 0;
+      const actualBattKwh = battCountMode * battCapKwh; // kWh actually purchased
+
+      const panelCountMode = Math.ceil((pvArrayKw * 1000) / this.panelWatts);
+      const actualPvWatts = panelCountMode * this.panelWatts; // W actually purchased
+
       const ccAmps =
         effectiveSun > 0
           ? Math.ceil(((pvArrayKw * 1000) / this.voltage) * 1.25)
           : 0;
       const costCC = ccAmps * ccPerAmp;
       const totalCost =
-        pvArrayKw * 1000 * solarPerW +
-        storageNeeded * battPerKwh +
+        actualPvWatts * solarPerW +
+        actualBattKwh * battPerKwh +
         inverterKw * inverterPerKw +
         costCC;
 
@@ -334,8 +348,11 @@ function solarCalculator() {
 
       const r = this.getCostRates();
       this.rates = r;
-      this.cost.solar = pvArrayKw * 1000 * r.solarPerW;
-      this.cost.battery = storageNeeded * r.battPerKwh;
+      // Cost based on actual units purchased (whole panels & whole battery units)
+      const actualPvWatts = panelCount * this.panelWatts;
+      const actualBattKwh = battCount * this.battCapKwh();
+      this.cost.solar = actualPvWatts * r.solarPerW;
+      this.cost.battery = actualBattKwh * r.battPerKwh;
       this.cost.inverter = finalInverter * r.inverterPerKw;
       this.cost.chargeController = ccAmps * r.ccPerAmp;
       this.cost.total =

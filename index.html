@@ -239,6 +239,14 @@
             </div>
 
             <div class="prefs-grid">
+              <!-- General Section -->
+              <div
+                class="divider-label"
+                style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
+              >
+                <span x-text="t('sectionGeneral')"></span>
+              </div>
+
               <!-- Backup Duration -->
               <div class="pref-item">
                 <label>
@@ -284,7 +292,7 @@
               </div>
 
               <!-- System Efficiency -->
-              <div class="pref-item">
+              <div class="pref-item" style="display: none">
                 <label>
                   <span x-text="t('sysEfficiency')"></span>
                   <span
@@ -305,27 +313,12 @@
                 <p class="pref-hint" x-text="t('sysEfficiencyHint')"></p>
               </div>
 
-              <!-- Panel Size -->
-              <div class="pref-item">
-                <label style="margin-bottom: 12px">
-                  <span x-text="t('panelWatts')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--orange)"
-                    x-text="panelWatts + 'W'"
-                  ></span>
-                </label>
-                <div class="option-group">
-                  <template x-for="pw in PANEL_SIZES" :key="pw">
-                    <button
-                      class="opt-btn"
-                      :class="panelWatts === pw ? 'active-orange' : ''"
-                      @click="panelWatts = pw; calculate()"
-                      x-text="pw + 'W'"
-                    ></button>
-                  </template>
-                </div>
-                <p class="pref-hint" x-text="t('panelWattsHint')"></p>
+              <!-- Solar Panel Section -->
+              <div
+                class="divider-label"
+                style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
+              >
+                <span x-text="t('sectionSolar')"></span>
               </div>
 
               <!-- Panel Type -->
@@ -365,6 +358,37 @@
                 <p class="pref-hint" x-text="t('panelHint')"></p>
               </div>
 
+              <!-- Panel Size -->
+              <div class="pref-item">
+                <label style="margin-bottom: 12px">
+                  <span x-text="t('panelWatts')"></span>
+                  <span
+                    class="pref-val"
+                    style="color: var(--orange)"
+                    x-text="panelWatts + 'W'"
+                  ></span>
+                </label>
+                <div class="option-group">
+                  <template x-for="pw in PANEL_SIZES" :key="pw">
+                    <button
+                      class="opt-btn"
+                      :class="panelWatts === pw ? 'active-orange' : ''"
+                      @click="panelWatts = pw; calculate()"
+                      x-text="pw + 'W'"
+                    ></button>
+                  </template>
+                </div>
+                <p class="pref-hint" x-text="t('panelWattsHint')"></p>
+              </div>
+
+              <!-- Battery Section -->
+              <div
+                class="divider-label"
+                style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
+              >
+                <span x-text="t('sectionBattery')"></span>
+              </div>
+
               <!-- Battery Type -->
               <div class="pref-item">
                 <label style="margin-bottom: 12px">
@@ -400,54 +424,6 @@
                   </button>
                 </div>
                 <p class="pref-hint" x-text="t('batteryHint')"></p>
-              </div>
-
-              <!-- Controller Type -->
-              <div class="pref-item">
-                <label style="margin-bottom: 12px">
-                  <span x-text="t('systemType')"></span>
-                  <span
-                    class="pref-val"
-                    style="color: var(--green)"
-                    x-text="systemTypeLabel()"
-                  ></span>
-                </label>
-                <div class="option-group">
-                  <button
-                    class="opt-btn"
-                    :class="systemType === 'pwm' ? 'active-green' : ''"
-                    @click="systemType = 'pwm'; calculate()"
-                  >
-                    <i class="fas fa-microchip" style="margin-right: 4px"></i>
-                    <span x-text="t('pwm')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
-                      >Charge Controller</span
-                    >
-                  </button>
-                  <button
-                    class="opt-btn"
-                    :class="systemType === 'mppt' ? 'active-green' : ''"
-                    @click="systemType = 'mppt'; calculate()"
-                  >
-                    <i class="fas fa-bolt" style="margin-right: 4px"></i>
-                    <span x-text="t('mppt')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
-                      >Charge Controller</span
-                    >
-                  </button>
-                  <button
-                    class="opt-btn"
-                    :class="systemType === 'hybrid' ? 'active-green' : ''"
-                    @click="systemType = 'hybrid'; calculate()"
-                  >
-                    <i class="fas fa-layer-group" style="margin-right: 4px"></i>
-                    <span x-text="t('hybridInverter')"></span><br /><span
-                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
-                      >Inverter + CC</span
-                    >
-                  </button>
-                </div>
-                <p class="pref-hint" x-text="systemTypeHint()"></p>
               </div>
 
               <!-- Battery Voltage + Ah -->
@@ -496,6 +472,62 @@
                   </template>
                 </div>
                 <p class="pref-hint" x-text="t('batteryBankHint')"></p>
+              </div>
+
+              <!-- Inverter & Controller Section -->
+              <div
+                class="divider-label"
+                style="grid-column: 1 / -1; margin-top: 0; margin-bottom: 0"
+              >
+                <span x-text="t('sectionInverter')"></span>
+              </div>
+
+              <!-- Controller Type -->
+              <div class="pref-item" style="grid-column: 1 / -1">
+                <label style="margin-bottom: 12px">
+                  <span x-text="t('systemType')"></span>
+                  <span
+                    class="pref-val"
+                    style="color: var(--green)"
+                    x-text="systemTypeLabel()"
+                  ></span>
+                </label>
+                <div class="option-group">
+                  <button
+                    class="opt-btn"
+                    :class="systemType === 'pwm' ? 'active-green' : ''"
+                    @click="systemType = 'pwm'; calculate()"
+                  >
+                    <i class="fas fa-microchip" style="margin-right: 4px"></i>
+                    <span x-text="t('pwm')"></span><br /><span
+                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
+                      >Charge Controller</span
+                    >
+                  </button>
+                  <button
+                    class="opt-btn"
+                    :class="systemType === 'mppt' ? 'active-green' : ''"
+                    @click="systemType = 'mppt'; calculate()"
+                  >
+                    <i class="fas fa-bolt" style="margin-right: 4px"></i>
+                    <span x-text="t('mppt')"></span><br /><span
+                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
+                      >Charge Controller</span
+                    >
+                  </button>
+                  <button
+                    class="opt-btn"
+                    :class="systemType === 'hybrid' ? 'active-green' : ''"
+                    @click="systemType = 'hybrid'; calculate()"
+                  >
+                    <i class="fas fa-layer-group" style="margin-right: 4px"></i>
+                    <span x-text="t('hybridInverter')"></span><br /><span
+                      style="font-weight: 400; opacity: 0.7; font-size: 10px"
+                      >Inverter + CC</span
+                    >
+                  </button>
+                </div>
+                <p class="pref-hint" x-text="systemTypeHint()"></p>
               </div>
             </div>
           </div>
@@ -662,37 +694,6 @@
 
         <!-- ──────────────── RIGHT COLUMN ──────────────── -->
         <div class="right-col">
-          <!-- ── WARNINGS PANEL ── -->
-          <div
-            class="warnings-panel"
-            x-show="res.totalPeak === 0 || hasSurgingLoads() || systemType === 'pwm' || systemType === 'hybrid'"
-            x-transition
-          >
-            <!-- No load warning -->
-            <div class="warn-item warn-info" x-show="res.totalPeak === 0">
-              <i class="fas fa-circle-info"></i>
-              <span x-text="t('warnNoLoad')"></span>
-            </div>
-            <!-- Motor surge warning -->
-            <div class="warn-item warn-caution" x-show="hasSurgingLoads()">
-              <i class="fas fa-triangle-exclamation"></i>
-              <div>
-                <strong x-text="t('warnSurge')"></strong>
-                <span x-text="t('warnSurgeNote')"></span>
-              </div>
-            </div>
-            <!-- PWM info -->
-            <div class="warn-item warn-info" x-show="systemType === 'pwm'">
-              <i class="fas fa-microchip"></i>
-              <span x-text="t('warnPWM')"></span>
-            </div>
-            <!-- Hybrid Inverter info -->
-            <div class="warn-item warn-info" x-show="systemType === 'hybrid'">
-              <i class="fas fa-layer-group"></i>
-              <span x-text="t('warnHybridInverter')"></span>
-            </div>
-          </div>
-
           <!-- Results Panel -->
           <div class="results-panel">
             <i class="fas fa-solar-panel results-bg-icon"></i>
@@ -887,6 +888,37 @@
               <button class="action-btn btn-reset" @click="resetSystem()">
                 <i class="fas fa-undo"></i> <span x-text="t('reset')"></span>
               </button>
+            </div>
+          </div>
+
+          <!-- ── WARNINGS PANEL ── -->
+          <div
+            class="warnings-panel"
+            x-show="res.totalPeak === 0 || hasSurgingLoads() || systemType === 'pwm' || systemType === 'hybrid'"
+            x-transition
+          >
+            <!-- No load warning -->
+            <div class="warn-item warn-info" x-show="res.totalPeak === 0">
+              <i class="fas fa-circle-info"></i>
+              <span x-text="t('warnNoLoad')"></span>
+            </div>
+            <!-- Motor surge warning -->
+            <div class="warn-item warn-caution" x-show="hasSurgingLoads()">
+              <i class="fas fa-triangle-exclamation"></i>
+              <div>
+                <strong x-text="t('warnSurge')"></strong>
+                <span x-text="t('warnSurgeNote')"></span>
+              </div>
+            </div>
+            <!-- PWM info -->
+            <div class="warn-item warn-info" x-show="systemType === 'pwm'">
+              <i class="fas fa-microchip"></i>
+              <span x-text="t('warnPWM')"></span>
+            </div>
+            <!-- Hybrid Inverter info -->
+            <div class="warn-item warn-info" x-show="systemType === 'hybrid'">
+              <i class="fas fa-layer-group"></i>
+              <span x-text="t('warnHybridInverter')"></span>
             </div>
           </div>
         </div>
