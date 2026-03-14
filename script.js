@@ -9,16 +9,16 @@ function solarCalculator() {
     translations: TRANSLATIONS,
 
     state: {},
-    voltage: 12,
-    battAh: 100,
-    autonomy: 8,
-    sun: 4.5,
-    panelWatts: 500,
-    sysEfficiency: 75,
+    voltage: DEFAULTS.voltage,
+    battAh: DEFAULTS.battAh,
+    autonomy: DEFAULTS.autonomy,
+    sun: DEFAULTS.sun,
+    panelWatts: DEFAULTS.panelWatts,
+    sysEfficiency: DEFAULTS.sysEfficiency,
 
-    systemType: "mppt",
-    panelType: "mono",
-    batteryType: "lifepo4",
+    systemType: DEFAULTS.systemType,
+    panelType: DEFAULTS.panelType,
+    batteryType: DEFAULTS.batteryType,
 
     rates: { solarPerW: 22, battPerKwh: 10000, inverterPerKw: 12000 },
 
@@ -87,16 +87,15 @@ function solarCalculator() {
 
     _applyConfig(cfg) {
       if (!cfg) return;
-      this.autonomy = cfg.autonomy || 8;
-      this.sun = cfg.sun || 4.5;
-      this.voltage = cfg.voltage || 12;
-      this.battAh = cfg.battAh || BATTERY_SIZES[this.voltage][4];
-      const rawSysType = cfg.systemType || "mppt";
-      this.systemType = rawSysType;
-      this.panelType = cfg.panelType || "mono";
-      this.batteryType = cfg.batteryType || "lifepo4";
-      this.panelWatts = cfg.panelWatts || 500;
-      this.sysEfficiency = cfg.sysEfficiency || 75;
+      this.autonomy = cfg.autonomy ?? DEFAULTS.autonomy;
+      this.sun = cfg.sun ?? DEFAULTS.sun;
+      this.voltage = cfg.voltage ?? DEFAULTS.voltage;
+      this.battAh = cfg.battAh ?? BATTERY_SIZES[this.voltage][4];
+      this.systemType = cfg.systemType ?? DEFAULTS.systemType;
+      this.panelType = cfg.panelType ?? DEFAULTS.panelType;
+      this.batteryType = cfg.batteryType ?? DEFAULTS.batteryType;
+      this.panelWatts = cfg.panelWatts ?? DEFAULTS.panelWatts;
+      this.sysEfficiency = cfg.sysEfficiency ?? DEFAULTS.sysEfficiency;
       if (cfg.state) {
         Object.keys(cfg.state).forEach((id) => {
           if (this.state[id]) this.state[id] = cfg.state[id];
@@ -110,15 +109,15 @@ function solarCalculator() {
     },
 
     resetSystem() {
-      this.autonomy = 8;
-      this.sun = 4.5;
-      this.voltage = 12;
-      this.battAh = 100;
-      this.systemType = "mppt";
-      this.panelType = "mono";
-      this.batteryType = "lifepo4";
-      this.panelWatts = 500;
-      this.sysEfficiency = 75;
+      this.autonomy = DEFAULTS.autonomy;
+      this.sun = DEFAULTS.sun;
+      this.voltage = DEFAULTS.voltage;
+      this.battAh = DEFAULTS.battAh;
+      this.systemType = DEFAULTS.systemType;
+      this.panelType = DEFAULTS.panelType;
+      this.batteryType = DEFAULTS.batteryType;
+      this.panelWatts = DEFAULTS.panelWatts;
+      this.sysEfficiency = DEFAULTS.sysEfficiency;
       this.appliances.forEach((app) => {
         this.state[app.id] = { qty: app.defaultQty, hours: app.hours };
       });
@@ -373,222 +372,46 @@ function solarCalculator() {
       };
     },
 
-    // ── Share via canvas image ────────────────────────────────────
-    shareConfig() {
-      // Still encode share hash in URL for loading shared configs
+    // ── Share via DOM → canvas → clipboard ───────────────────────
+    async shareConfig() {
+      // Build the share card element
+      const card = document.getElementById("share-card");
+      if (!card) return;
+
+      // Temporarily make it visible for capture
+      card.style.display = "block";
+
       try {
-        const encoded = btoa(JSON.stringify(this._currentConfig()));
-        history.replaceState(null, "", "#share=" + encoded);
-      } catch (e) {}
+        // Use html2canvas to capture the card
+        const canvas = await html2canvas(card, {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: null,
+          logging: false,
+        });
 
-      // Build canvas summary image
-      const isDark = this.darkMode;
-      const bgColor = isDark ? "#0f172a" : "#f8fafc";
-      const cardBg = isDark ? "#1e293b" : "#ffffff";
-      const textPrimary = isDark ? "#f1f5f9" : "#0f172a";
-      const textDim = isDark ? "#94a3b8" : "#64748b";
-      const accent = "#f59e0b";
-      const blue = "#60a5fa";
-      const purple = "#a78bfa";
-      const orange = "#fb923c";
-      const green = "#4ade80";
+        card.style.display = "none";
 
-      const W = 640,
-        H = 480;
-      const canvas = document.createElement("canvas");
-      canvas.width = W * 2;
-      canvas.height = H * 2;
-      const ctx = canvas.getContext("2d");
-      ctx.scale(2, 2);
+        canvas.toBlob(async (blob) => {
+          if (!blob) return;
+          try {
+            await navigator.clipboard.write([
+              new ClipboardItem({ "image/png": blob }),
+            ]);
+          } catch (e) {
+            // Fallback: open in new tab so user can save manually
+            const url = URL.createObjectURL(blob);
+            window.open(url, "_blank");
+          }
+        }, "image/png");
 
-      // Background
-      ctx.fillStyle = bgColor;
-      ctx.fillRect(0, 0, W, H);
-
-      // Header band
-      const grad = ctx.createLinearGradient(0, 0, W, 0);
-      grad.addColorStop(0, "#f59e0b");
-      grad.addColorStop(1, "#f97316");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, W, 56);
-
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 18px Inter, sans-serif";
-      ctx.fillText("☀  Solar Setup Calculator", 20, 22);
-      ctx.font = "400 12px Inter, sans-serif";
-      ctx.globalAlpha = 0.85;
-      ctx.fillText("System Summary", 20, 42);
-      ctx.globalAlpha = 1;
-
-      // Controller badge
-      const ctrlLabel =
-        this.translations[this.lang].systemTypeLabels[this.systemType] ||
-        this.systemType;
-      ctx.font = "bold 11px Inter, sans-serif";
-      const bw = ctx.measureText(ctrlLabel).width + 16;
-      ctx.fillStyle = "rgba(0,0,0,0.25)";
-      ctx.beginPath();
-      ctx.roundRect(W - bw - 12, 18, bw, 22, 6);
-      ctx.fill();
-      ctx.fillStyle = "#fff";
-      ctx.fillText(ctrlLabel, W - bw - 4, 33);
-
-      // Card helper
-      const drawCard = (x, y, w, h, color, icon, label, value, sub) => {
-        ctx.fillStyle = cardBg;
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, 10);
-        ctx.fill();
-        // Accent bar
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.roundRect(x, y, 4, h, [10, 0, 0, 10]);
-        ctx.fill();
-        // Icon circle
-        ctx.fillStyle = color + "33";
-        ctx.beginPath();
-        ctx.arc(x + 22, y + 22, 14, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = color;
-        ctx.font = "bold 12px Inter, sans-serif";
-        ctx.fillText(icon, x + 16, y + 27);
-        // Label
-        ctx.fillStyle = textDim;
-        ctx.font = "400 11px Inter, sans-serif";
-        ctx.fillText(label, x + 42, y + 18);
-        // Value
-        ctx.fillStyle = color;
-        ctx.font = "bold 20px Inter, sans-serif";
-        ctx.fillText(value, x + 42, y + 38);
-        // Sub
-        if (sub) {
-          ctx.fillStyle = textDim;
-          ctx.font = "400 10px Inter, sans-serif";
-          ctx.fillText(sub, x + 42, y + 52);
-        }
-      };
-
-      const lang = this.translations[this.lang];
-      const cw = (W - 48) / 2;
-      const ch = 70;
-      const row1y = 72;
-      const row2y = row1y + ch + 8;
-
-      drawCard(
-        16,
-        row1y,
-        cw,
-        ch,
-        blue,
-        "⚡",
-        lang.inverterSize,
-        this.res.inverter + " kW",
-        lang.peakLoad + ": " + this.res.totalPeak + "W",
-      );
-      drawCard(
-        24 + cw,
-        row1y,
-        cw,
-        ch,
-        purple,
-        "🔋",
-        lang.storageNeeded,
-        this.res.battery + " kWh",
-        this.res.battAh +
-          " Ah @ " +
-          this.voltage +
-          "V · " +
-          this.res.battCount +
-          " " +
-          lang.units,
-      );
-      drawCard(
-        16,
-        row2y,
-        cw,
-        ch,
-        orange,
-        "☀",
-        lang.solarArray,
-        this.res.panels + " kW",
-        this.res.panelCount + " panels × " + this.panelWatts + "W",
-      );
-      drawCard(
-        24 + cw,
-        row2y,
-        cw,
-        ch,
-        green,
-        "📆",
-        lang.dailyEnergy,
-        this.res.dailyEnergy + " kWh",
-        lang.peakSunHours +
-          ": " +
-          this.sun +
-          "h  ·  " +
-          lang.sysEfficiency +
-          ": " +
-          this.sysEfficiency +
-          "%",
-      );
-
-      // Cost section
-      const cy = row2y + ch + 12;
-      ctx.fillStyle = cardBg;
-      ctx.beginPath();
-      ctx.roundRect(16, cy, W - 32, 72, 10);
-      ctx.fill();
-      ctx.fillStyle = accent;
-      ctx.beginPath();
-      ctx.roundRect(16, cy, 4, 72, [10, 0, 0, 10]);
-      ctx.fill();
-      ctx.fillStyle = textDim;
-      ctx.font = "400 11px Inter, sans-serif";
-      ctx.fillText(lang.costEstimate, 28, cy + 16);
-      ctx.fillStyle = accent;
-      ctx.font = "bold 26px Inter, sans-serif";
-      ctx.fillText(this.formatCost(this.cost.total), 28, cy + 44);
-      // Cost breakdown
-      const items = [
-        [lang.solarPanels, this.formatCost(this.cost.solar), orange],
-        [lang.batteryBankCost, this.formatCost(this.cost.battery), purple],
-        [lang.inverterAcc, this.formatCost(this.cost.inverter), blue],
-        [
-          lang.chargeController,
-          this.formatCost(this.cost.chargeController),
-          green,
-        ],
-      ];
-      let bx = 230;
-      items.forEach(([lbl, val, col]) => {
-        ctx.fillStyle = textDim;
-        ctx.font = "400 9px Inter, sans-serif";
-        ctx.fillText(lbl, bx, cy + 22);
-        ctx.fillStyle = col;
-        ctx.font = "bold 11px Inter, sans-serif";
-        ctx.fillText(val, bx, cy + 38);
-        bx += 100;
-      });
-
-      // Footer
-      ctx.fillStyle = textDim;
-      ctx.font = "400 10px Inter, sans-serif";
-      ctx.fillText("anwar.bd · Solar Setup Calculator", 16, H - 10);
-      ctx.fillText(new Date().toLocaleDateString(), W - 90, H - 10);
-
-      // Copy to clipboard as blob
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        try {
-          const item = new ClipboardItem({ "image/png": blob });
-          navigator.clipboard.write([item]).catch(() => {});
-        } catch (e) {}
-      }, "image/png");
-
-      this.shareFeedback = true;
-      setTimeout(() => {
-        this.shareFeedback = false;
-      }, 2500);
+        this.shareFeedback = true;
+        setTimeout(() => {
+          this.shareFeedback = false;
+        }, 2500);
+      } catch (e) {
+        card.style.display = "none";
+      }
     },
 
     _loadFromHash() {

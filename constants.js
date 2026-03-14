@@ -61,6 +61,22 @@ const BATTERY_SIZES = {
 };
 // ─────────────────────────────────────────────────────────────────
 
+// ── DEFAULT CONFIGURATION ─────────────────────────────────────────
+// Single source of truth for all default values.
+// Referenced by the Alpine data object, _applyConfig(), and resetSystem().
+const DEFAULTS = {
+  autonomy: 8, // hours of battery-only backup
+  sun: 4.5, // peak sun hours per day
+  voltage: 12, // battery bank voltage (V)
+  battAh: 100, // battery Ah per unit
+  systemType: "mppt",
+  panelType: "mono",
+  batteryType: "lifepo4",
+  panelWatts: 500, // rated W per panel
+  sysEfficiency: 75, // %
+};
+// ─────────────────────────────────────────────────────────────────
+
 const ALL_APPLIANCES = [
   {
     id: "light",
