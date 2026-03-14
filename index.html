@@ -434,8 +434,8 @@
                   </button>
                   <button
                     class="opt-btn"
-                    :class="systemType === 'hybrid-inverter' ? 'active-green' : ''"
-                    @click="systemType = 'hybrid-inverter'; calculate()"
+                    :class="systemType === 'hybrid' ? 'active-green' : ''"
+                    @click="systemType = 'hybrid'; calculate()"
                   >
                     <i class="fas fa-layer-group" style="margin-right: 4px"></i>
                     <span x-text="t('hybridInverter')"></span><br /><span
@@ -662,7 +662,7 @@
           <!-- ── WARNINGS PANEL ── -->
           <div
             class="warnings-panel"
-            x-show="res.totalPeak === 0 || hasSurgingLoads() || systemType === 'pwm' || systemType === 'hybrid-inverter'"
+            x-show="res.totalPeak === 0 || hasSurgingLoads() || systemType === 'pwm' || systemType === 'hybrid'"
             x-transition
           >
             <!-- No load warning -->
@@ -684,10 +684,7 @@
               <span x-text="t('warnPWM')"></span>
             </div>
             <!-- Hybrid Inverter info -->
-            <div
-              class="warn-item warn-info"
-              x-show="systemType === 'hybrid-inverter'"
-            >
+            <div class="warn-item warn-info" x-show="systemType === 'hybrid'">
               <i class="fas fa-layer-group"></i>
               <span x-text="t('warnHybridInverter')"></span>
             </div>
