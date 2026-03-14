@@ -1,0 +1,220 @@
+    <!-- ── SHARE CARD (hidden, captured by html2canvas) ── -->
+    <div
+      id="share-card"
+      style="
+        display: none;
+        position: fixed;
+        left: -9999px;
+        top: 0;
+        width: 640px;
+        padding: 0;
+        font-family: Inter, sans-serif;
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--bg);
+        box-shadow: 0 0 0 1px var(--border);
+      "
+    >
+      <!-- Header -->
+      <div
+        style="
+          background: linear-gradient(90deg, #f59e0b, #f97316);
+          padding: 18px 24px 14px;
+        "
+      >
+        <div
+          style="
+            color: #fff;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+          "
+        >
+          ☀ Solar Setup Calculator
+        </div>
+        <div
+          style="color: rgba(255, 255, 255, 0.8); font-size: 11px"
+          x-text="systemTypeLabel()"
+        ></div>
+      </div>
+
+      <!-- Result cards -->
+      <div
+        style="
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          padding: 14px 14px 8px;
+        "
+      >
+        <!-- Inverter -->
+        <div
+          style="
+            background: var(--card);
+            border-radius: 10px;
+            padding: 14px;
+            border-left: 4px solid #60a5fa;
+          "
+        >
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-bottom: 4px"
+            x-text="t('inverterSize')"
+          ></div>
+          <div
+            style="color: #60a5fa; font-size: 22px; font-weight: 700"
+            x-text="res.inverter + ' kW'"
+          ></div>
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-top: 4px"
+            x-text="t('peakLoad') + ': ' + res.totalPeak + 'W'"
+          ></div>
+        </div>
+        <!-- Battery -->
+        <div
+          style="
+            background: var(--card);
+            border-radius: 10px;
+            padding: 14px;
+            border-left: 4px solid #a78bfa;
+          "
+        >
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-bottom: 4px"
+            x-text="t('storageNeeded')"
+          ></div>
+          <div
+            style="color: #a78bfa; font-size: 22px; font-weight: 700"
+            x-text="res.battery + ' kWh'"
+          ></div>
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-top: 4px"
+            x-text="res.battAh + ' Ah @ ' + voltage + 'V · ' + res.battCount + ' ' + t('units')"
+          ></div>
+        </div>
+        <!-- Solar -->
+        <div
+          style="
+            background: var(--card);
+            border-radius: 10px;
+            padding: 14px;
+            border-left: 4px solid #fb923c;
+          "
+        >
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-bottom: 4px"
+            x-text="t('solarArray')"
+          ></div>
+          <div
+            style="color: #fb923c; font-size: 22px; font-weight: 700"
+            x-text="res.panels + ' kW'"
+          ></div>
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-top: 4px"
+            x-text="res.panelCount + ' panels × ' + panelWatts + 'W'"
+          ></div>
+        </div>
+        <!-- Daily -->
+        <div
+          style="
+            background: var(--card);
+            border-radius: 10px;
+            padding: 14px;
+            border-left: 4px solid #4ade80;
+          "
+        >
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-bottom: 4px"
+            x-text="t('dailyEnergy')"
+          ></div>
+          <div
+            style="color: #4ade80; font-size: 22px; font-weight: 700"
+            x-text="res.dailyEnergy + ' kWh'"
+          ></div>
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-top: 4px"
+            x-text="t('peakSunHours') + ': ' + sun + 'h · ' + t('sysEfficiency') + ': ' + sysEfficiency + '%'"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Cost bar -->
+      <div
+        style="
+          margin: 0 14px 14px;
+          background: var(--card);
+          border-radius: 10px;
+          padding: 14px;
+          border-left: 4px solid #f59e0b;
+          display: flex;
+          align-items: center;
+          gap: 24px;
+        "
+      >
+        <div>
+          <div
+            style="color: var(--text-dim); font-size: 10px; margin-bottom: 4px"
+            x-text="t('totalEstCost')"
+          ></div>
+          <div
+            style="color: #f59e0b; font-size: 26px; font-weight: 700"
+            x-text="formatCost(cost.total)"
+          ></div>
+        </div>
+        <div style="display: flex; gap: 20px; flex-wrap: wrap">
+          <div>
+            <div
+              style="color: var(--text-dim); font-size: 9px"
+              x-text="t('solarPanels')"
+            ></div>
+            <div
+              style="color: #fb923c; font-size: 11px; font-weight: 700"
+              x-text="formatCost(cost.solar)"
+            ></div>
+          </div>
+          <div>
+            <div
+              style="color: var(--text-dim); font-size: 9px"
+              x-text="t('batteryBankCost')"
+            ></div>
+            <div
+              style="color: #a78bfa; font-size: 11px; font-weight: 700"
+              x-text="formatCost(cost.battery)"
+            ></div>
+          </div>
+          <div>
+            <div
+              style="color: var(--text-dim); font-size: 9px"
+              x-text="t('inverterAcc')"
+            ></div>
+            <div
+              style="color: #60a5fa; font-size: 11px; font-weight: 700"
+              x-text="formatCost(cost.inverter)"
+            ></div>
+          </div>
+          <div>
+            <div
+              style="color: var(--text-dim); font-size: 9px"
+              x-text="t('chargeController')"
+            ></div>
+            <div
+              style="color: #4ade80; font-size: 11px; font-weight: 700"
+              x-text="formatCost(cost.chargeController)"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div
+        style="
+          padding: 8px 14px 12px;
+          display: flex;
+          justify-content: space-between;
+          color: var(--text-dim);
+          font-size: 9px;
+        "
+      >
+        <span>anwar.bd · Solar Setup Calculator</span>
+        <span x-text="new Date().toLocaleDateString()"></span>
+      </div>
+    </div>

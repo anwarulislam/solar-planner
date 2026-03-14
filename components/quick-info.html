@@ -1,0 +1,15 @@
+          <!-- Quick Info -->
+          <div class="info-card">
+            <h3>
+              <i class="fas fa-lightbulb" style="color: var(--amber)"></i>
+              <span x-text="t('quickInfo')"></span>
+            </h3>
+            <ul>
+              <template
+                x-for="(item, i) in translations[lang].quickInfoItems"
+                :key="i"
+              >
+                <li><span x-html="item"></span></li>
+              </template>
+            </ul>
+          </div>

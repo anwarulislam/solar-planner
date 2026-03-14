@@ -1,0 +1,152 @@
+          <!-- Appliances Section -->
+          <div class="card">
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-icon icon-blue">
+                  <i class="fas fa-plug"></i>
+                </div>
+                <div>
+                  <h2 x-text="t('appliancesTitle')"></h2>
+                  <p x-text="t('appliancesDesc')"></p>
+                </div>
+              </div>
+            </div>
+
+            <div class="appliances-list">
+              <template x-for="app in commonAppliances" :key="app.id">
+                <div class="appliance-row">
+                  <div class="app-info">
+                    <div class="app-icon-wrap" :class="app.iconColor">
+                      <i class="fas" :class="app.icon"></i>
+                    </div>
+                    <div>
+                      <div class="app-name" x-text="appName(app)"></div>
+                      <div class="app-watts">
+                        <span x-text="app.watts"></span
+                        ><span x-text="' ' + t('wPerUnit')"></span>
+                        <!-- total watts inline -->
+                        <span
+                          class="app-total-badge"
+                          x-show="state[app.id].qty > 0"
+                          x-text="'· ' + appTotalWatts(app) + 'W ' + t('totalWatts')"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="app-controls">
+                    <div>
+                      <div class="ctrl-label" x-text="t('qty')"></div>
+                      <div class="qty-stepper">
+                        <button class="qty-btn" @click="updateQty(app.id, -1)">
+                          −
+                        </button>
+                        <span class="qty-val" x-text="state[app.id].qty"></span>
+                        <button class="qty-btn" @click="updateQty(app.id, 1)">
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div>
+                      <div class="ctrl-label" x-text="t('hoursPerDay')"></div>
+                      <div class="hours-ctrl">
+                        <input
+                          type="range"
+                          min="0"
+                          max="24"
+                          step="0.5"
+                          x-model.number="state[app.id].hours"
+                          @input="calculate()"
+                          class="slider-sm"
+                        />
+                        <span
+                          class="hours-val"
+                          x-text="state[app.id].hours + 'h'"
+                        ></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+            <!-- Other Appliances (toggle) -->
+            <div x-show="isOtherVisible" x-transition>
+              <div class="divider-label">
+                <span x-text="t('otherAppliances')"></span>
+              </div>
+              <div class="appliances-list">
+                <template x-for="app in otherAppliances" :key="app.id">
+                  <div class="appliance-row">
+                    <div class="app-info">
+                      <div class="app-icon-wrap" :class="app.iconColor">
+                        <i class="fas" :class="app.icon"></i>
+                      </div>
+                      <div>
+                        <div class="app-name" x-text="appName(app)"></div>
+                        <div class="app-watts">
+                          <span x-text="app.watts"></span
+                          ><span x-text="' ' + t('wPerUnit')"></span>
+                          <span
+                            class="app-total-badge"
+                            x-show="state[app.id].qty > 0"
+                            x-text="'· ' + appTotalWatts(app) + 'W ' + t('totalWatts')"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="app-controls">
+                      <div>
+                        <div class="ctrl-label" x-text="t('qty')"></div>
+                        <div class="qty-stepper">
+                          <button
+                            class="qty-btn"
+                            @click="updateQty(app.id, -1)"
+                          >
+                            −
+                          </button>
+                          <span
+                            class="qty-val"
+                            x-text="state[app.id].qty"
+                          ></span>
+                          <button class="qty-btn" @click="updateQty(app.id, 1)">
+                            +
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <div class="ctrl-label" x-text="t('hoursPerDay')"></div>
+                        <div class="hours-ctrl">
+                          <input
+                            type="range"
+                            min="0"
+                            max="24"
+                            step="0.5"
+                            x-model.number="state[app.id].hours"
+                            @input="calculate()"
+                            class="slider-sm"
+                          />
+                          <span
+                            class="hours-val"
+                            x-text="state[app.id].hours + 'h'"
+                          ></span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <button
+              class="toggle-btn"
+              @click="isOtherVisible = !isOtherVisible"
+            >
+              <i
+                class="fas text-xs"
+                :class="isOtherVisible ? 'fa-chevron-up' : 'fa-chevron-down'"
+              ></i>
+              <span
+                x-text="isOtherVisible ? t('hideOther') : t('showOther')"
+              ></span>
+            </button>
+          </div>

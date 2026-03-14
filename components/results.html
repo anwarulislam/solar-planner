@@ -1,0 +1,196 @@
+          <!-- Results Panel -->
+          <div class="results-panel">
+            <i class="fas fa-solar-panel results-bg-icon"></i>
+
+            <div class="panel-title" x-text="t('systemSummary')"></div>
+
+            <!-- Inverter -->
+            <div class="result-item">
+              <div>
+                <div class="result-label" x-text="t('inverterSize')"></div>
+                <div
+                  class="result-value"
+                  style="color: #60a5fa"
+                  x-text="res.inverter + ' kW'"
+                ></div>
+              </div>
+              <div class="result-icon ri-blue">
+                <i class="fas fa-microchip"></i>
+              </div>
+            </div>
+
+            <!-- Battery -->
+            <div class="result-item">
+              <div>
+                <div class="result-label" x-text="t('storageNeeded')"></div>
+                <div
+                  class="result-value"
+                  style="color: var(--purple)"
+                  x-text="res.battery + ' kWh'"
+                ></div>
+                <div class="result-sub" x-show="true">
+                  <strong x-text="res.battAh + ' Ah'"></strong>
+                  @ <span x-text="voltage + 'V'"></span> &nbsp;·&nbsp;
+                  <span x-text="res.battCount + ' ' + t('units')"></span>
+                </div>
+              </div>
+              <div class="result-icon ri-purple">
+                <i class="fas fa-car-battery"></i>
+              </div>
+            </div>
+
+            <!-- Solar Array -->
+            <div class="result-item" style="margin-bottom: 0">
+              <div>
+                <div class="result-label" x-text="t('solarArray')"></div>
+                <div
+                  class="result-value"
+                  style="color: var(--orange)"
+                  x-text="res.panels + ' kW'"
+                ></div>
+                <div class="result-sub">
+                  <span
+                    x-text="res.panelCount + ' ' + t('panelsEach') + ' (' + panelWatts + 'W each)'"
+                  ></span>
+                </div>
+              </div>
+              <div class="result-icon ri-orange">
+                <i class="fas fa-sun"></i>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+              <div class="stat-box">
+                <div class="lbl" x-text="t('peakLoad')"></div>
+                <div class="val">
+                  <span x-text="res.totalPeak"></span>
+                  <span
+                    style="
+                      font-size: 12px;
+                      color: var(--text-dim);
+                      font-weight: 500;
+                    "
+                    >W</span
+                  >
+                </div>
+              </div>
+              <div class="stat-box">
+                <div class="lbl" x-text="t('dailyEnergy')"></div>
+                <div class="val">
+                  <span x-text="res.dailyEnergy"></span>
+                  <span
+                    style="
+                      font-size: 12px;
+                      color: var(--text-dim);
+                      font-weight: 500;
+                    "
+                    >kWh</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="cost-header" x-text="t('costEstimate')"></div>
+            <div class="cost-row">
+              <span class="clbl">
+                <span x-text="t('solarPanels')"></span>
+                <span
+                  style="color: var(--text-dim); font-size: 11px"
+                  x-text="'(' + rates.solarPerW + ' ৳/W)'"
+                >
+                </span>
+              </span>
+              <span
+                class="cval"
+                style="color: var(--orange)"
+                x-text="formatCost(cost.solar)"
+              ></span>
+            </div>
+            <div class="cost-row">
+              <span class="clbl">
+                <span x-text="t('batteryBankCost')"></span>
+                <span
+                  style="color: var(--text-dim); font-size: 11px"
+                  x-text="'(' + rates.battPerKwh.toLocaleString('en-IN') + ' ৳/kWh)'"
+                >
+                </span>
+              </span>
+              <span
+                class="cval"
+                style="color: var(--purple)"
+                x-text="formatCost(cost.battery)"
+              ></span>
+            </div>
+            <div class="cost-row">
+              <span class="clbl">
+                <span x-text="t('inverterAcc')"></span>
+                <span
+                  style="color: var(--text-dim); font-size: 11px"
+                  x-text="'(' + rates.inverterPerKw.toLocaleString('en-IN') + ' ৳/kW)'"
+                >
+                </span>
+              </span>
+              <span
+                class="cval"
+                style="color: #60a5fa"
+                x-text="formatCost(cost.inverter)"
+              ></span>
+            </div>
+            <div class="cost-row" x-show="res.ccAmps > 0">
+              <span class="clbl">
+                <span x-text="t('chargeController')"></span>
+                <span
+                  style="color: var(--text-dim); font-size: 11px"
+                  x-text="'(' + res.ccAmps + 'A · ' + res.ccCount + ' unit' + (res.ccCount > 1 ? 's' : '') + ')'"
+                >
+                </span>
+              </span>
+              <span
+                class="cval"
+                style="color: var(--green)"
+                x-text="formatCost(cost.chargeController)"
+              ></span>
+            </div>
+            <div class="total-cost-row">
+              <span class="tlbl" x-text="t('totalEstCost')"></span>
+              <span class="tval" x-text="formatCost(cost.total)"></span>
+            </div>
+            <div class="cost-approx-note">
+              <i class="fas fa-circle-info"></i>
+              <span x-text="t('approxNote')"></span>
+            </div>
+
+            <!-- Actions -->
+            <div class="action-row">
+              <button
+                class="action-btn btn-save"
+                @click="saveModalOpen = true; newConfigName = ''"
+              >
+                <i class="fas fa-save"></i> <span x-text="t('save')"></span>
+              </button>
+              <button
+                class="action-btn btn-load"
+                @click="loadModalOpen = true; refreshSavedConfigs()"
+              >
+                <i class="fas fa-history"></i> <span x-text="t('saved')"></span>
+              </button>
+              <button
+                class="action-btn btn-share"
+                @click="shareConfig()"
+                :title="t('share')"
+              >
+                <i
+                  class="fas"
+                  :class="shareFeedback ? 'fa-check' : 'fa-share-nodes'"
+                ></i>
+                <span
+                  x-text="shareFeedback ? t('shareCopied') : t('share')"
+                ></span>
+              </button>
+              <button class="action-btn btn-reset" @click="resetSystem()">
+                <i class="fas fa-undo"></i> <span x-text="t('reset')"></span>
+              </button>
+            </div>
+          </div>

@@ -1,0 +1,53 @@
+    <!-- ── SAVE MODAL ── -->
+    <div class="modal-overlay" :class="{ 'active': saveModalOpen }" x-cloak>
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 x-text="t('saveConfigTitle')"></h3>
+          <button class="modal-close" @click="saveModalOpen = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="summary-preview">
+            <strong x-text="t('saveSummaryTitle')"></strong><br />
+            Inverter: <span x-text="res.inverter + ' kW'"></span> &nbsp;·&nbsp;
+            Storage: <span x-text="res.battery + ' kWh'"></span> &nbsp;·&nbsp;
+            Solar: <span x-text="res.panels + ' kW'"></span><br />
+            Est. Cost:
+            <span style="color: #60a5fa" x-text="formatCost(cost.total)"></span
+            ><br /><br />
+            <strong x-text="t('saveSummaryPrefs')"></strong><br />
+            Sun: <span x-text="sun"></span>h &nbsp;|&nbsp; Autonomy:
+            <span x-text="autonomy"></span>h &nbsp;|&nbsp; Efficiency:
+            <span x-text="sysEfficiency"></span>% &nbsp;|&nbsp; Voltage:
+            <span x-text="voltage"></span>V<br /><br />
+            <strong x-text="t('saveSummaryActive')"></strong><br />
+            <template x-if="getActiveAppliancesList().length === 0"
+              ><span x-text="t('noneSelected')"></span
+            ></template>
+            <template x-for="line in getActiveAppliancesList()" :key="line">
+              <div x-text="line"></div>
+            </template>
+          </div>
+          <label class="input-label" x-text="t('configNameLabel')"></label>
+          <input
+            type="text"
+            class="text-input"
+            x-model="newConfigName"
+            :placeholder="t('configNamePlaceholder')"
+            @keydown.enter="saveConfiguration()"
+          />
+        </div>
+        <div class="modal-footer">
+          <button
+            class="mb-cancel"
+            @click="saveModalOpen = false"
+            x-text="t('cancel')"
+          ></button>
+          <button class="mb-save" @click="saveConfiguration()">
+            <i class="fas fa-save" style="margin-right: 6px"></i
+            ><span x-text="t('saveSettingBtn')"></span>
+          </button>
+        </div>
+      </div>
+    </div>

@@ -1,0 +1,39 @@
+          <!-- ── LOAD BREAKDOWN ── -->
+          <div
+            class="card"
+            x-show="parseFloat(res.dailyEnergy) > 0"
+            x-transition
+          >
+            <div class="section-head">
+              <div class="section-title">
+                <div class="section-icon icon-blue">
+                  <i class="fas fa-chart-bar"></i>
+                </div>
+                <div>
+                  <h2 x-text="t('loadBreakdownTitle')"></h2>
+                  <p x-text="t('loadBreakdownDesc')"></p>
+                </div>
+              </div>
+            </div>
+            <div class="load-chart">
+              <template x-for="item in loadBreakdown()" :key="item.name">
+                <div class="load-bar-row">
+                  <div class="load-bar-label">
+                    <span class="load-dot" :class="item.iconColor"></span>
+                    <span x-text="item.name"></span>
+                  </div>
+                  <div class="load-bar-track">
+                    <div
+                      class="load-bar-fill"
+                      :class="item.iconColor"
+                      :style="'width:' + item.pct + '%'"
+                    ></div>
+                  </div>
+                  <div class="load-bar-val">
+                    <span x-text="item.kwh + ' kWh'"></span>
+                    <span class="load-pct" x-text="item.pct + '%'"></span>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>

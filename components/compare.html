@@ -1,0 +1,101 @@
+          <!-- ── COMPARE MODES ── -->
+          <div class="card">
+            <button
+              class="toggle-btn"
+              style="margin-top: 0"
+              @click="isCompareVisible = !isCompareVisible; if(isCompareVisible) buildCompare()"
+            >
+              <i
+                class="fas text-xs"
+                :class="isCompareVisible ? 'fa-chevron-up' : 'fa-chart-pie'"
+              ></i>
+              <span
+                x-text="isCompareVisible ? t('hideCompare') : t('showCompare')"
+              ></span>
+            </button>
+
+            <div
+              x-show="isCompareVisible"
+              x-transition
+              style="margin-top: 20px"
+            >
+              <div class="section-title" style="margin-bottom: 16px">
+                <div class="section-icon icon-amber">
+                  <i class="fas fa-balance-scale"></i>
+                </div>
+                <div>
+                  <h2 x-text="t('compareTitle')"></h2>
+                  <p x-text="t('compareDesc')"></p>
+                </div>
+              </div>
+              <div class="compare-table">
+                <!-- Header -->
+                <div class="compare-header-row">
+                  <div class="compare-cell compare-row-label"></div>
+                  <template x-for="col in compareData" :key="col.mode">
+                    <div
+                      class="compare-cell compare-col-head"
+                      :class="col.mode === systemType ? 'compare-active' : ''"
+                      x-text="col.label"
+                    ></div>
+                  </template>
+                </div>
+                <!-- Inverter -->
+                <div class="compare-row">
+                  <div
+                    class="compare-cell compare-row-label"
+                    x-text="t('rowInverter')"
+                  ></div>
+                  <template x-for="col in compareData" :key="col.mode">
+                    <div
+                      class="compare-cell"
+                      :class="col.mode === systemType ? 'compare-active' : ''"
+                      x-text="col.inverter"
+                    ></div>
+                  </template>
+                </div>
+                <!-- Battery -->
+                <div class="compare-row">
+                  <div
+                    class="compare-cell compare-row-label"
+                    x-text="t('rowBattery')"
+                  ></div>
+                  <template x-for="col in compareData" :key="col.mode">
+                    <div
+                      class="compare-cell"
+                      :class="col.mode === systemType ? 'compare-active' : ''"
+                      x-text="col.battery"
+                    ></div>
+                  </template>
+                </div>
+                <!-- Solar -->
+                <div class="compare-row">
+                  <div
+                    class="compare-cell compare-row-label"
+                    x-text="t('rowSolar')"
+                  ></div>
+                  <template x-for="col in compareData" :key="col.mode">
+                    <div
+                      class="compare-cell"
+                      :class="col.mode === systemType ? 'compare-active' : ''"
+                      x-text="col.solar"
+                    ></div>
+                  </template>
+                </div>
+                <!-- Cost -->
+                <div class="compare-row compare-cost-row">
+                  <div
+                    class="compare-cell compare-row-label"
+                    x-text="t('rowCost')"
+                  ></div>
+                  <template x-for="col in compareData" :key="col.mode">
+                    <div
+                      class="compare-cell compare-cost-cell"
+                      :class="col.mode === systemType ? 'compare-active' : ''"
+                      x-text="col.cost"
+                    ></div>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>

@@ -1,0 +1,47 @@
+    <!-- ── LOAD MODAL ── -->
+    <div class="modal-overlay" :class="{ 'active': loadModalOpen }" x-cloak>
+      <div class="modal-box">
+        <div class="modal-header">
+          <h3 x-text="t('savedConfigsTitle')"></h3>
+          <button class="modal-close" @click="loadModalOpen = false">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="configs-list">
+            <template x-if="savedConfigs.length === 0">
+              <div class="empty-state">
+                <i
+                  class="fas fa-folder-open"
+                  style="
+                    font-size: 28px;
+                    margin-bottom: 8px;
+                    display: block;
+                    opacity: 0.3;
+                  "
+                ></i>
+                <span x-text="t('noConfigs')"></span>
+              </div>
+            </template>
+            <template x-for="c in savedConfigs" :key="c.id">
+              <div class="config-item" @click="loadConfig(c)">
+                <div>
+                  <div class="config-name" x-text="c.name"></div>
+                  <div class="config-meta">
+                    <span x-text="c.date"></span> &nbsp;·&nbsp;
+                    <span x-text="t('inv')"></span>:
+                    <span x-text="c.summary.inverter"></span> &nbsp;·&nbsp;
+                    <span x-text="t('pv')"></span>:
+                    <span x-text="c.summary.pv"></span> &nbsp;·&nbsp;
+                    <span x-text="c.summary.cost || 'N/A'"></span>
+                  </div>
+                </div>
+                <div class="config-load-btn">
+                  <i class="fas fa-download"></i>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
